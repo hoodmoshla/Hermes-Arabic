@@ -178,6 +178,28 @@ class RepositoryInvariantTests(unittest.TestCase):
         self.assertIn("github-run-workflow", bridge)
         self.assertIn('callHermesAndroidJson("listGitHubWorkflows"', bridge)
 
+    def test_parallel_tasks_do_not_mark_partial_results_complete(self) -> None:
+        bridge = (ROOT / "www/hermes-mobile-bridge.js").read_text(encoding="utf-8")
+        self.assertIn('finish(answer ? "انتهت مهلة المهمة المتوازية قبل اكتمالها؛ الرد المستلم جزئي." : "انتهت مهلة المهمة المتوازية قبل اكتمال رد Hermes.");', bridge)
+        self.assertIn('if (!settled) finish(answer ? "أُغلق اتصال Hermes قبل اكتمال المهمة؛ الرد المستلم جزئي." : "أُغلق اتصال Hermes قبل اكتمال المهمة.");', bridge)
+        self.assertNotIn('finish(answer ? "" : "انتهت مهلة المهمة المتوازية.")', bridge)
+
+    def test_mobile_composer_stays_on_one_row_and_attachment_menu_can_escape_footer(self) -> None:
+        css = (ROOT / "www/hermes-arabic-mobile.css").read_text(encoding="utf-8")
+        bridge = (ROOT / "www/hermes-mobile-bridge.js").read_text(encoding="utf-8")
+        activity = (ROOT / "android/app/src/main/java/com/hoodmoshla/hermesarabic/MainActivity.java").read_text(encoding="utf-8")
+        self.assertRegex(css, r"#hermes-mobile-inputbar\s*\{[^}]*display:\s*flex\s*!important;")
+        self.assertRegex(css, r"#hermes-mobile-inputbar\s*\{[^}]*flex-wrap:\s*nowrap\s*!important;")
+        self.assertRegex(css, r"#hermes-mobile-inputbar\s*\{[^}]*width:\s*100%\s*!important;")
+        self.assertRegex(css, r"#hermes-mobile-bottom\s*\{[^}]*overflow:\s*visible\s*!important;")
+        self.assertIn(";overflow:visible;}#hermes-mobile-inputbar{display:flex;flex-direction:row;flex-wrap:nowrap;direction:rtl;", bridge)
+        self.assertIn("align-items:center;width:100%;max-width:100%;box-sizing:border-box;", bridge)
+        self.assertIn("#hermes-mobile-input{flex:1 1 0%;min-width:0;min-height:38px;", bridge)
+        self.assertIn('data-action=\\\"pick-file\\\"', bridge)
+        self.assertIn("window.hermesDesktop.selectPaths", bridge)
+        self.assertIn("Intent.ACTION_OPEN_DOCUMENT", activity)
+        self.assertIn("requestCode != REQ_PICK_FILES", activity)
+
 
 if __name__ == "__main__":
     unittest.main()

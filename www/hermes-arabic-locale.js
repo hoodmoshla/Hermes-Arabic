@@ -101,12 +101,16 @@
     document.documentElement.lang = "ar";
     document.documentElement.dir = "rtl";
     if (document.body) document.body.dir = "rtl";
-    if (!document.getElementById("hermes-arabic-mobile-css")) {
-      var stylesheet = document.createElement("link");
+    var stylesheet = document.getElementById("hermes-arabic-mobile-css")
+      || document.querySelector("link[rel='stylesheet'][href*='hermes-arabic-mobile.css']");
+    if (!stylesheet) {
+      stylesheet = document.createElement("link");
       stylesheet.id = "hermes-arabic-mobile-css";
       stylesheet.rel = "stylesheet";
-      stylesheet.href = "/hermes-arabic-mobile.css";
+      stylesheet.href = "/hermes-arabic-mobile.css?v=0.2.4";
       (document.head || document.documentElement).appendChild(stylesheet);
+    } else if (!stylesheet.id) {
+      stylesheet.id = "hermes-arabic-mobile-css";
     }
     var style = document.getElementById("hermes-arabic-rtl-style");
     if (!style) {
