@@ -1,19 +1,84 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("verify_project", ROOT / "scripts/verify_project.py")
 assert SPEC and SPEC.loader
 verify_project = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(verify_project)
+BACKEND_SPEC = importlib.util.spec_from_file_location(
+    "hermes_mobile_backend",
+    ROOT / "android/app/src/main/python/hermes_mobile_backend.py",
+)
+assert BACKEND_SPEC and BACKEND_SPEC.loader
+android_backend = importlib.util.module_from_spec(BACKEND_SPEC)
+BACKEND_SPEC.loader.exec_module(android_backend)
 
 
 class RepositoryInvariantTests(unittest.TestCase):
     def test_project_invariants(self) -> None:
         self.assertEqual([], verify_project.check())
+
+    def test_embedded_python_sources_compile_before_chaquopy_packaging(self) -> None:
+        python_root = ROOT / "android/app/src/main/python"
+        source_files = sorted(python_root.rglob("*.py"))
+        self.assertTrue(source_files, "No embedded Python sources found")
+        syntax_errors: list[str] = []
+        for path in source_files:
+            try:
+                compile(path.read_bytes(), str(path), "exec")
+            except (SyntaxError, UnicodeDecodeError) as exc:
+                syntax_errors.append(f"{path.relative_to(ROOT)}: {exc}")
+        self.assertEqual([], syntax_errors, "Embedded Python syntax errors:\n" + "\n".join(syntax_errors))
+
+    def test_backend_status_does_not_report_ready_for_open_port_only(self) -> None:
+        with (
+            patch.object(android_backend, "_is_port_open", return_value=True),
+            patch.object(android_backend, "_read_api_status", return_value=None),
+            patch.object(android_backend, "_last_error", ""),
+        ):
+            result = json.loads(android_backend.status())
+        self.assertTrue(result["running"])
+        self.assertFalse(result["ready"])
+        self.assertFalse(result["ok"])
+
+    def test_backend_status_reports_ready_after_live_api_response(self) -> None:
+        with (
+            patch.object(android_backend, "_is_port_open", return_value=True),
+            patch.object(android_backend, "_read_api_status", return_value={"version": "test"}),
+            patch.object(android_backend, "_server_thread", threading.current_thread()),
+            patch.object(android_backend, "_last_error", ""),
+        ):
+            result = json.loads(android_backend.status())
+        self.assertTrue(result["ready"])
+        self.assertTrue(result["ok"])
+
+    def test_backend_rejects_health_response_without_its_server_thread(self) -> None:
+        with (
+            patch.object(android_backend, "_is_port_open", return_value=True),
+            patch.object(android_backend, "_read_api_status", return_value={"version": "other-service"}),
+            patch.object(android_backend, "_server_thread", None),
+            patch.object(android_backend, "_last_error", ""),
+        ):
+            result = json.loads(android_backend.status())
+        self.assertTrue(result["running"])
+        self.assertFalse(result["thread_alive"])
+        self.assertFalse(result["ready"])
+        self.assertFalse(result["ok"])
+
+    def test_diagnose_does_not_pass_before_backend_readiness(self) -> None:
+        with (
+            patch.object(android_backend, "initialize", return_value=json.dumps({"ok": True})),
+            patch.object(android_backend, "status", return_value=json.dumps({"ok": False, "ready": False})),
+        ):
+            result = json.loads(android_backend.diagnose("/tmp/hermes-test", 9129))
+        self.assertFalse(result["ok"])
 
     def test_secret_scanner_recognizes_test_fixture_only(self) -> None:
         scanner = verify_project.re.compile(
@@ -73,6 +138,9 @@ class RepositoryInvariantTests(unittest.TestCase):
         self.assertIn("MessageDigest.getInstance(\"SHA-256\")", downloader)
         self.assertIn("configure_local_model", backend)
         self.assertIn("restore_local_model", backend)
+        self.assertIn("import hermes_cli.web_server", backend)
+        self.assertIn("LocalModelManager.resumeSelected(this)", service)
+        self.assertIn("HermesForegroundService", service)
         self.assertIn("ResumableModelDownloader.sha256(file)", manager)
         self.assertIn("intent == null && !isEnabledAfterBoot(this)", service)
 

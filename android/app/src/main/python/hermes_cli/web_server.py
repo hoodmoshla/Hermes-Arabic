@@ -15114,6 +15114,8 @@ def start_server(
     — used when a profile alias (``<profile> dashboard``) routes to the
     machine dashboard.
     """
+    global _ANDROID_SERVER_INSTANCE
+
     import uvicorn
 
     try:
@@ -15253,6 +15255,8 @@ def start_server(
         ws_ping_timeout=None if _is_loopback else 20.0,
     )
     server = uvicorn.Server(config)
+    with _ANDROID_SERVER_LOCK:
+        _ANDROID_SERVER_INSTANCE = server
 
     async def _serve():
         # Split startup from main_loop so we can read the bound port
@@ -15362,10 +15366,12 @@ def start_server(
         except Exception:
             pass
 
-    if _runner is not None:
-        _runner(_serve(), loop_factory=_loop_factory)
-    else:
-        asyncio.run(_serve())
-    global _ANDROID_SERVER_INSTANCE
-    with _ANDROID_SERVER_LOCK:
-        _ANDROID_SERVER_INSTANCE = server
+    try:
+        if _runner is not None:
+            _runner(_serve(), loop_factory=_loop_factory)
+        else:
+            asyncio.run(_serve())
+    finally:
+        with _ANDROID_SERVER_LOCK:
+            if _ANDROID_SERVER_INSTANCE is server:
+                _ANDROID_SERVER_INSTANCE = None

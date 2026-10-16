@@ -101,6 +101,7 @@ def initialize(files_dir: str, port: int = 9129) -> str:
         env = _prepare_environment(files_dir)
         try:
             import hermes_cli  # noqa: F401
+            import hermes_cli.web_server  # noqa: F401
             import run_agent  # noqa: F401
             import gateway  # noqa: F401
             _last_error = ""
@@ -168,10 +169,13 @@ def start(files_dir: str, port: int = 9129) -> str:
 
     deadline = time.time() + 20
     while time.time() < deadline:
-        if is_running():
-            return status()
+        current = json.loads(status())
+        if current.get("ok"):
+            return _json(current)
         if _last_error:
-            return status()
+            return _json(current)
+        if not (_server_thread and _server_thread.is_alive()):
+            return _json(current)
         time.sleep(0.25)
     return status()
 
@@ -180,26 +184,36 @@ def is_running() -> bool:
     return _is_port_open("127.0.0.1", _server_port)
 
 
+def _read_api_status() -> dict[str, Any] | None:
+    """Return the live dashboard status only after its HTTP route is ready."""
+    try:
+        with urlopen(f"http://127.0.0.1:{_server_port}/api/status", timeout=1.5) as response:
+            if getattr(response, "status", 200) != 200:
+                return None
+            body = json.loads(response.read().decode("utf-8", errors="replace"))
+        if not isinstance(body, dict) or not isinstance(body.get("version"), str) or not body["version"]:
+            return None
+        return body
+    except Exception:
+        return None
+
+
 def status() -> str:
     with _lock:
         uptime = max(0.0, time.time() - _started_at) if _started_at else 0.0
         running = is_running()
-        body: dict[str, Any] | None = None
-        if running:
-            try:
-                with urlopen(f"http://127.0.0.1:{_server_port}/api/status", timeout=1.5) as response:
-                    raw = response.read().decode("utf-8", errors="replace")
-                    body = json.loads(raw)
-            except Exception:
-                body = None
+        body = _read_api_status() if running else None
+        thread_alive = bool(_server_thread and _server_thread.is_alive())
+        ready = running and thread_alive and body is not None and not _last_error
         return _json({
-            "ok": running and not _last_error,
+            "ok": ready,
+            "ready": ready,
             "available": True,
             "running": running,
             "port": _server_port,
             "url": f"http://127.0.0.1:{_server_port}",
             "uptime_seconds": round(uptime, 3),
-            "thread_alive": bool(_server_thread and _server_thread.is_alive()),
+            "thread_alive": thread_alive,
             "files_dir": _files_dir,
             "error": _last_error,
             "api_status": body,
@@ -210,7 +224,7 @@ def diagnose(files_dir: str, port: int = 9129) -> str:
     init = json.loads(initialize(files_dir, port))
     stat = json.loads(status())
     return _json({
-        "ok": bool(init.get("ok")),
+        "ok": bool(init.get("ok") and stat.get("ok")),
         "init": init,
         "status": stat,
     })

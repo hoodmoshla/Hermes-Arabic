@@ -50,7 +50,7 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
       - name: Run unit tests and build debug APK
-        run: ./android/gradlew -p android testDebugUnitTest assembleDebug --console=plain
+        run: ./android/gradlew -p android testDebugUnitTest compileDebugAndroidTestJavaWithJavac assembleDebug --console=plain
         env:
           PYTHON: python
       - name: Announce that the signed release is skipped without repository secrets
@@ -81,6 +81,8 @@ jobs:
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep -F "package: name='com.hoodmoshla.hermesarabic'"
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep -F "native-code: 'arm64-v8a'"
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+          SIGNER_SHA256=$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK" | awk -F': ' '/Signer #1 certificate SHA-256 digest:/ {gsub(/[[:space:]]/, "", $2); print $2; exit}')
+          test "$SIGNER_SHA256" = "cafd30e70eb3ed4130ddd6786c69474678dd3682744aa75be50e653f6ec4c8d1"
           mkdir -p dist
           cp "$APK" dist/hermes-arabic-arm64.apk
           sha256sum dist/hermes-arabic-arm64.apk > dist/hermes-arabic-arm64.apk.sha256
