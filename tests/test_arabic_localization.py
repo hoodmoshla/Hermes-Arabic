@@ -152,6 +152,27 @@ class ArabicLocalizationTests(unittest.TestCase):
         self.assertIn(".hermes-mobile-bubble", locale_script)
         self.assertIn("#hermes-mobile-stream", locale_script)
 
+    def test_primary_action_button_contrast_meets_wcag_aa(self) -> None:
+        css = (ROOT / "www/hermes-arabic-mobile.css").read_text(encoding="utf-8")
+        light_root = re.search(r":root\s*\{([^}]+)\}", css, re.S)
+        dark_theme = re.search(r"#hermes-mobile-shell\.dark\s*\{([^}]+)\}", css, re.S)
+        self.assertIsNotNone(light_root)
+        self.assertIsNotNone(dark_theme)
+        light_primary = re.search(r"--hm-primary:\s*(#[0-9a-fA-F]{6})", light_root.group(1)).group(1)
+        dark_primary = re.search(r"--hm-primary:\s*(#[0-9a-fA-F]{6})", dark_theme.group(1)).group(1)
+
+        def luminance(color: str) -> float:
+            channels = [int(color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+            linear = [value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4 for value in channels]
+            return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+        def contrast(foreground: str, background: str) -> float:
+            lighter, darker = sorted((luminance(foreground), luminance(background)), reverse=True)
+            return (lighter + 0.05) / (darker + 0.05)
+
+        self.assertGreaterEqual(contrast("#ffffff", light_primary), 4.5)
+        self.assertGreaterEqual(contrast("#ffffff", dark_primary), 4.5)
+
     def test_settings_and_mobile_actions_are_real_and_ordered(self) -> None:
         bridge = (ROOT / "www/hermes-mobile-bridge.js").read_text(encoding="utf-8")
         catalog = json.loads(MOBILE_PATH.read_text(encoding="utf-8"))
