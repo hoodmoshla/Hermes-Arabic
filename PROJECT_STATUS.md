@@ -22,6 +22,10 @@
 - `npm audit --audit-level=moderate`: نجح، 0 ثغرات بعد تحديثات semver ضمن النطاق المعلن؛ قُفل `package-lock.json` على `registry.npmjs.org`.
 - `testDebugUnitTest` و`assembleRelease`: نجحا في 2026-10-16 بعد مزامنة Capacitor المنفصلة. تحقق `aapt` من الحزمة `com.hoodmoshla.hermesarabic` وABI `arm64-v8a`، وتحقق `apksigner` من توقيع APK v2. الحجم 87,844,093 بايت (83.77 MiB)، وSHA-256 هو `d2bc260d2b3b5d74157877a19db722f5e059d18645f49bd388cdf89e73e66f97`.
 - اختبار Android على جهاز أو محاكي: لم يُجرَ لعدم وجود جهاز أو KVM.
-- GitHub Actions: أخفق التشغيل الأول عند طلب حزمة SDK المتقادمة `tools`؛ أُصلح الإعداد في commit `7435db4` ويجري الآن التشغيل الثاني، رقم `38839723823`.
+- GitHub Actions: أخفق التشغيل الأول بسبب طلب حزمة SDK المتقادمة `tools`؛ أُصلح الإعداد في commit `7435db4`. التشغيل `38839797885` نجح: إعداد SDK، مزامنة Capacitor، فحوص المستودع، اختبارات الوحدة، وبناء Debug. لم يُبنَ Release موقّع داخل CI لعدم وجود الأسرار الأربعة.
 
 تثبت نتائج Gradle و`apksigner` نجاح البناء والتوقيع فقط؛ لا تثبت تثبيت التطبيق أو عمل الوكيل على هاتف. كما أن اختبارات `npm` آلية/ساكنة.
+
+## الإصدار التجريبي
+
+أُنشئ الإصدار الخاص `v0.1.0-preview` وأُرفق به APK Release الموقّع وملف SHA-256: [Hermes Arabic 0.1.0 Preview](https://github.com/hoodmoshla/Hermes-Arabic/releases/tag/v0.1.0-preview). مفتاح التوقيع محلي وخارج المستودع؛ يلزم إضافة أسرار GitHub Actions يدويًا لتفعيل Release موقّع داخل CI.
