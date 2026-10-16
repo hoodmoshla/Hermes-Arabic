@@ -27,6 +27,8 @@ import android.system.Os;
 import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebResourceRequest;
@@ -36,6 +38,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.util.Base64;
 import androidx.activity.OnBackPressedCallback;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -71,6 +74,7 @@ public class MainActivity extends BridgeActivity {
     private static final String TAG = "HermesApp";
     private static final int EMBEDDED_AGENT_PORT = 9129;
     private static final int REQ_PICK_FILES = 9001;
+    private static final int REQ_CAPTURE_PHOTO = 9005;
     private static final int REQ_RECORD_AUDIO = 9002;
     private static final int REQ_SPEECH_TEXT = 9003;
     private static MainActivity activeInstance;
@@ -81,6 +85,10 @@ public class MainActivity extends BridgeActivity {
     private int safeLeftPx = 0;
     private CountDownLatch filePickerLatch;
     private ArrayList<String> filePickerPaths = new ArrayList<>();
+    private CountDownLatch cameraCaptureLatch;
+    private File cameraCaptureOutputFile;
+    private String cameraCapturePath = "";
+    private String cameraCaptureError = "";
     private CountDownLatch microphoneLatch;
     private boolean microphoneGranted = false;
     private CountDownLatch speechLatch;
@@ -1437,6 +1445,25 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
+        public String capturePhoto(int timeoutMs) {
+            JSONObject result = new JSONObject();
+            try {
+                String path = capturePhotoBlocking(timeoutMs > 0 ? timeoutMs : 120000);
+                result.put("ok", true);
+                result.put("path", path);
+            } catch (Exception e) {
+                try {
+                    result.put("ok", false);
+                    result.put("error", e.getMessage());
+                    result.put("path", "");
+                } catch (Exception ignored) {
+                    // ignore
+                }
+            }
+            return result.toString();
+        }
+
+        @JavascriptInterface
         public String readFileDataUrl(String path) {
             JSONObject result = new JSONObject();
             try {
@@ -1461,6 +1488,58 @@ public class MainActivity extends BridgeActivity {
                     result.put("dataUrl", "");
                 } catch (Exception ignored) {
                     // ignore
+                }
+            }
+            return result.toString();
+        }
+
+        @JavascriptInterface
+        public String readImagePreviewDataUrl(String path) {
+            JSONObject result = new JSONObject();
+            Bitmap bitmap = null;
+            try {
+                File file = new File(path == null ? "" : path);
+                if (!file.isFile()) {
+                    throw new IllegalArgumentException("تعذر العثور على ملف الصورة.");
+                }
+                if (file.length() > 30L * 1024L * 1024L) {
+                    throw new IllegalArgumentException("حجم الصورة كبير لعرض معاينة سريعة.");
+                }
+                BitmapFactory.Options bounds = new BitmapFactory.Options();
+                bounds.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(file.getAbsolutePath(), bounds);
+                if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+                    throw new IllegalArgumentException("صيغة الصورة غير مدعومة للمعاينة.");
+                }
+                int longestSide = Math.max(bounds.outWidth, bounds.outHeight);
+                int sampleSize = 1;
+                while (longestSide / sampleSize > 640) {
+                    sampleSize *= 2;
+                }
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = sampleSize;
+                options.inPreferredConfig = Bitmap.Config.RGB_565;
+                bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+                if (bitmap == null) {
+                    throw new IllegalArgumentException("تعذرت قراءة الصورة للمعاينة.");
+                }
+                ByteArrayOutputStream output = new ByteArrayOutputStream();
+                if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 78, output)) {
+                    throw new IllegalStateException("تعذر تجهيز معاينة الصورة.");
+                }
+                result.put("ok", true);
+                result.put("dataUrl", "data:image/jpeg;base64," + Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP));
+            } catch (Exception e) {
+                try {
+                    result.put("ok", false);
+                    result.put("error", e.getMessage() == null ? "تعذرت معاينة الصورة." : e.getMessage());
+                    result.put("dataUrl", "");
+                } catch (Exception ignored) {
+                    // ignore
+                }
+            } finally {
+                if (bitmap != null && !bitmap.isRecycled()) {
+                    bitmap.recycle();
                 }
             }
             return result.toString();
@@ -1874,6 +1953,72 @@ public class MainActivity extends BridgeActivity {
         return new ArrayList<>(filePickerPaths);
     }
 
+    private String capturePhotoBlocking(int timeoutMs) throws Exception {
+        if (cameraCaptureOutputFile != null) {
+            throw new IllegalStateException("هناك عملية تصوير سابقة لم تنتهِ بعد.");
+        }
+
+        File cameraDir = new File(getCacheDir(), "hermes-camera");
+        if (!cameraDir.isDirectory() && !cameraDir.mkdirs()) {
+            throw new IllegalStateException("تعذر تجهيز مساحة الصورة المؤقتة.");
+        }
+        File outputFile = new File(cameraDir, "hermes-photo-" + System.currentTimeMillis() + ".jpg");
+        if (!outputFile.createNewFile()) {
+            throw new IllegalStateException("تعذر إنشاء ملف الصورة المؤقت.");
+        }
+
+        Uri outputUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", outputFile);
+        CountDownLatch latch = new CountDownLatch(1);
+        cameraCaptureLatch = latch;
+        cameraCaptureOutputFile = outputFile;
+        cameraCapturePath = "";
+        cameraCaptureError = "";
+
+        runOnUiThread(() -> {
+            try {
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, outputUri);
+                cameraIntent.setClipData(ClipData.newRawUri("Hermes photo", outputUri));
+                cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                startActivityForResult(cameraIntent, REQ_CAPTURE_PHOTO);
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to open camera", e);
+                cameraCaptureError = "تعذر فتح تطبيق الكاميرا. تأكد من توفر تطبيق كاميرا ثم أعد المحاولة.";
+                cameraCapturePath = "";
+                if (outputFile.exists() && !outputFile.delete()) {
+                    Log.w(TAG, "Failed to remove empty camera output file");
+                }
+                cameraCaptureOutputFile = null;
+                CountDownLatch pending = cameraCaptureLatch;
+                cameraCaptureLatch = null;
+                if (pending != null) {
+                    pending.countDown();
+                }
+            }
+        });
+
+        if (!latch.await(timeoutMs, TimeUnit.MILLISECONDS)) {
+            if (cameraCaptureLatch == latch) {
+                cameraCaptureLatch = null;
+            }
+            cameraCapturePath = "";
+            throw new IllegalStateException("انتهت مهلة التقاط الصورة.");
+        }
+
+        String error = cameraCaptureError;
+        String path = cameraCapturePath;
+        cameraCaptureError = "";
+        cameraCapturePath = "";
+        if (error != null && !error.isEmpty()) {
+            throw new IllegalStateException(error);
+        }
+        File captured = new File(path == null ? "" : path);
+        if (!captured.isFile() || captured.length() <= 0) {
+            throw new IllegalStateException("لم تُحفظ صورة صالحة من الكاميرا.");
+        }
+        return captured.getAbsolutePath();
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -1901,6 +2046,29 @@ public class MainActivity extends BridgeActivity {
             speechText = text == null ? "" : text;
             CountDownLatch latch = speechLatch;
             speechLatch = null;
+            if (latch != null) {
+                latch.countDown();
+            }
+            return;
+        }
+
+        if (requestCode == REQ_CAPTURE_PHOTO) {
+            File outputFile = cameraCaptureOutputFile;
+            CountDownLatch latch = cameraCaptureLatch;
+            cameraCaptureLatch = null;
+            cameraCaptureOutputFile = null;
+            if (resultCode == Activity.RESULT_OK && outputFile != null && outputFile.isFile() && outputFile.length() > 0 && latch != null) {
+                cameraCapturePath = outputFile.getAbsolutePath();
+                cameraCaptureError = "";
+            } else {
+                if (outputFile != null && outputFile.exists() && !outputFile.delete()) {
+                    Log.w(TAG, "Failed to remove canceled camera output file");
+                }
+                cameraCapturePath = "";
+                cameraCaptureError = resultCode == Activity.RESULT_OK
+                    ? "لم تُحفظ صورة صالحة من الكاميرا."
+                    : "أُلغي التقاط الصورة.";
+            }
             if (latch != null) {
                 latch.countDown();
             }

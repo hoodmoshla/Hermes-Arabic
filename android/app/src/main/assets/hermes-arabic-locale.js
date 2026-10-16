@@ -3,7 +3,7 @@
   window.__hermesArabicLocaleInstalled = true;
 
   var translations = {
-    "Hermes": "هيرمس", "Hermes 正在准备": "هيرمس العربي يستعد",
+    "Hermes": "Hermes", "Hermes 正在准备": "هيرمس العربي يستعد",
     "正在准备界面": "جارٍ تجهيز الواجهة", "正在检查本机服务、模型配置和移动端资源。": "جارٍ فحص الخدمة المحلية وإعداد النموذج وموارد الهاتف.",
     "你的移动智能体": "وكيلك الذكي على الهاتف", "接管手机": "التحكم بالهاتف",
     "发起新对话": "محادثة جديدة", "搜索会话": "ابحث في المحادثات",
@@ -65,9 +65,12 @@
   });
 
   function translate(value) {
-    var key = String(value || "").trim();
+    var original = String(value == null ? "" : value);
+    var key = original.trim();
     if (!key) return value;
-    return Object.prototype.hasOwnProperty.call(translations, key) ? translations[key] : value;
+    if (!Object.prototype.hasOwnProperty.call(translations, key)) return value;
+    var offset = original.indexOf(key);
+    return original.slice(0, offset) + translations[key] + original.slice(offset + key.length);
   }
 
   function excluded(node) {
@@ -84,8 +87,8 @@
       var translated = translate(node.nodeValue);
       if (translated !== node.nodeValue) node.nodeValue = translated;
     });
-    root.querySelectorAll("[placeholder],[aria-label],[title],[alt]").forEach(function (element) {
-      ["placeholder", "aria-label", "title", "alt"].forEach(function (attribute) {
+    root.querySelectorAll("[placeholder],[aria-label],[title],[alt],[data-prompt]").forEach(function (element) {
+      ["placeholder", "aria-label", "title", "alt", "data-prompt"].forEach(function (attribute) {
         if (!element.hasAttribute(attribute)) return;
         var oldValue = element.getAttribute(attribute);
         var newValue = translate(oldValue);
@@ -98,6 +101,13 @@
     document.documentElement.lang = "ar";
     document.documentElement.dir = "rtl";
     if (document.body) document.body.dir = "rtl";
+    if (!document.getElementById("hermes-arabic-mobile-css")) {
+      var stylesheet = document.createElement("link");
+      stylesheet.id = "hermes-arabic-mobile-css";
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = "/hermes-arabic-mobile.css";
+      (document.head || document.documentElement).appendChild(stylesheet);
+    }
     var style = document.getElementById("hermes-arabic-rtl-style");
     if (!style) {
       style = document.createElement("style");
@@ -112,7 +122,7 @@
         "#hermes-mobile-suggestions button,.hermes-mobile-panel,.hermes-mobile-row,.hermes-mobile-tool,.hermes-mobile-form label{direction:rtl;text-align:right!important}",
         "#hermes-mobile-input,#hermes-mobile-chat-input{direction:rtl;text-align:right}",
         "input[type='url'],input[type='email'],input[type='password'],input[autocomplete='url'],pre,code,.xterm,.monaco-editor{direction:ltr;text-align:left}",
-        "#hermes-mobile-send{transform:scaleX(-1)}"
+        "#hermes-mobile-shell :is(input[type='url'],input[type='email'],input[type='password'],code,pre,.xterm,.monaco-editor){direction:ltr;text-align:left}"
       ].join("");
       (document.head || document.documentElement).appendChild(style);
     }
@@ -130,6 +140,20 @@
         });
       });
       window.__hermesArabicObserver.observe(document.body, { childList: true, subtree: true });
+    }
+    if (window.fetch) {
+      window.fetch("/locales/ar-mobile.json", { cache: "no-store" }).then(function (response) {
+        if (!response.ok) throw new Error("Arabic locale file unavailable");
+        return response.json();
+      }).then(function (catalog) {
+        if (!catalog || typeof catalog !== "object" || Array.isArray(catalog)) return;
+        Object.keys(catalog).forEach(function (key) {
+          if (typeof catalog[key] === "string") translations[key] = catalog[key];
+        });
+        localize(document.body || document.documentElement);
+      }).catch(function () {
+        // Keep the embedded critical translations if the optional catalog is unavailable.
+      });
     }
   }
 

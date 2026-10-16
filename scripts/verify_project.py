@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -45,10 +46,57 @@ def check() -> list[str]:
     locale = ROOT / "android/app/src/main/assets/hermes-arabic-locale.js"
     if not locale.exists() or 'document.documentElement.dir = "rtl"' not in locale.read_text(encoding="utf-8"):
         errors.append("Arabic RTL localization layer is missing")
+    mobile_locale = ROOT / "www/locales/ar-mobile.json"
+    dashboard_locale = ROOT / "android/app/src/main/python/hermes_cli/web_dist/locales/ar.json"
+    if not (ROOT / "android/app/src/main/python/locales/ar.yaml").is_file():
+        errors.append("Arabic Hermes system-message catalog is missing")
+    try:
+        mobile_catalog = json.loads(mobile_locale.read_text(encoding="utf-8"))
+        if len(mobile_catalog) < 348:
+            errors.append("Arabic mobile UI catalog is missing source phrases")
+        if any(re.search(r"[\u3400-\u9fff]", value) and not re.search(r"[\u0600-\u06ff]", value) for value in mobile_catalog.values()):
+            errors.append("Arabic mobile catalog contains untranslated Chinese UI text")
+    except (OSError, ValueError, TypeError):
+        errors.append("Arabic mobile UI catalog is missing or invalid JSON")
+    try:
+        dashboard_catalog = json.loads(dashboard_locale.read_text(encoding="utf-8"))
+        if len(dashboard_catalog) != 18:
+            errors.append("Arabic dashboard catalog does not cover all Hermes locale groups")
+    except (OSError, ValueError, TypeError):
+        errors.append("Arabic dashboard catalog is missing or invalid JSON")
+    dashboard_bundle = ROOT / "android/app/src/main/python/hermes_cli/web_dist/assets/index-DcSRr1FX.js"
+    dashboard_html = ROOT / "android/app/src/main/python/hermes_cli/web_dist/index.html"
+    if dashboard_bundle.exists():
+        bundle_text = dashboard_bundle.read_text(encoding="utf-8", errors="replace")
+        if ";Rd.ar=" not in bundle_text or "return`ar`}var Wd" not in bundle_text:
+            errors.append("Hermes dashboard bundle is not Arabic-first or lacks the Arabic locale")
+    else:
+        errors.append("Hermes dashboard bundle is missing")
+    if not dashboard_html.exists() or '<html lang="ar" dir="rtl">' not in dashboard_html.read_text(encoding="utf-8"):
+        errors.append("Hermes dashboard HTML must declare Arabic and RTL")
     web_bridge = ROOT / "www/hermes-mobile-bridge.js"
     android_bridge = ROOT / "android/app/src/main/assets/public/hermes-mobile-bridge.js"
     if not web_bridge.exists() or not android_bridge.exists() or web_bridge.read_bytes() != android_bridge.read_bytes():
         errors.append("Web and Android bridge copies are not identical")
+    asset_pairs = [
+        (ROOT / "www/index.html", ROOT / "android/app/src/main/assets/public/index.html"),
+        (ROOT / "www/hermes-arabic-locale.js", ROOT / "android/app/src/main/assets/hermes-arabic-locale.js"),
+        (ROOT / "www/hermes-arabic-locale.js", ROOT / "android/app/src/main/assets/public/hermes-arabic-locale.js"),
+        (ROOT / "www/hermes-arabic-locale.js", ROOT / "android/app/src/main/python/hermes_cli/web_dist/hermes-arabic-locale.js"),
+        (ROOT / "www/hermes-arabic-mobile.css", ROOT / "android/app/src/main/assets/public/hermes-arabic-mobile.css"),
+        (ROOT / "www/hermes-arabic-mobile.css", ROOT / "android/app/src/main/python/hermes_cli/web_dist/hermes-arabic-mobile.css"),
+        (ROOT / "www/locales/ar-mobile.json", ROOT / "android/app/src/main/assets/public/locales/ar-mobile.json"),
+        (ROOT / "www/locales/ar-mobile.json", ROOT / "android/app/src/main/python/hermes_cli/web_dist/locales/ar-mobile.json"),
+    ]
+    for source, mirror in asset_pairs:
+        if not source.is_file() or not mirror.is_file() or source.read_bytes() != mirror.read_bytes():
+            errors.append(f"Localized web asset is missing or differs from its Android/dashboard copy: {source.relative_to(ROOT)}")
+            break
+    bridge_text = web_bridge.read_text(encoding="utf-8") if web_bridge.exists() else ""
+    for marker in ("ماذا تريد من Hermes أن يفعل اليوم؟", "أنشئ سير عمل للهاتف", "الخصوصية والبيانات", "data-action=\\\"capture-photo\\\"", "data-action=\\\"voice-input\\\""):
+        if marker not in bridge_text:
+            errors.append(f"Critical Arabic mobile UI control or translation is missing: {marker}")
+            break
     if not (ROOT / "LICENSE").exists() or not (ROOT / "THIRD_PARTY_NOTICES.md").exists():
         errors.append("Project license notices are missing")
     try:

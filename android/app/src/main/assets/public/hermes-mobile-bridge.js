@@ -61,15 +61,36 @@
     ["الاستخدام", "استهلاك الرموز وإحصاءات الاستخدام", "usage", "الإعدادات الأساسية"],
     ["إدارة الذاكرة", "ذاكرة المشروع المنظمة وتفضيلات المستخدم", "memory", "قدرات الوكيل"],
     ["الملفات الناتجة", "إدارة سير العمل والنتائج", "artifacts", "قدرات الوكيل"],
-    ["Skills Hub", "استعراض المهارات وتثبيتها وإزالتها وفحصها", "skills", "قدرات الوكيل"],
-    ["Persona", "تعديل الشخصية وأسلوب الإجابة في SOUL.md", "persona", "قدرات الوكيل"],
+    ["مركز المهارات", "استعراض المهارات وتثبيتها وإزالتها وفحصها", "skills", "قدرات الوكيل"],
+    ["الشخصية", "تعديل الشخصية وأسلوب الإجابة في SOUL.md", "persona", "قدرات الوكيل"],
     ["الأدوات", "الويب والطرفية والملفات والبرمجة والصور والصوت", "tools", "قدرات الوكيل"],
     ["MCP", "استعراض خوادم MCP وتثبيتها وتبديلها", "mcp", "قدرات الوكيل"],
     ["بيئات معزولة", "محلي وDocker وSSH وSingularity وModal", "sandboxes", "متقدم"],
     ["الوكلاء الفرعيون", "وكلاء فرعيون معزولون وتنفيذ متوازٍ", "subagents", "متقدم"],
     ["لوحة الأوامر", "Cmd/Ctrl+K والإجراءات العامة", "command-palette", "متقدم"]
   ];
-  var ALL_SETTINGS_TOOLS = DRAWER_TOOLS.concat(SETTINGS_TOOLS);
+  var ALL_SETTINGS_TOOLS = [
+    ["النماذج والاتصالات", "إعداد النماذج وعنوان الخدمة ومفتاح API", "models", "النموذج والاتصال"],
+    ["التكاملات", "منصات المراسلة وإعداد البوابة ومراقبة الحالة", "integrations", "النموذج والاتصال"],
+    ["الخوادم البعيدة", "OAuth أو بيانات الحساب واتصال WebSocket آمن", "remote", "النموذج والاتصال"],
+    ["مركز الملفات", "الصور والصوت والمستندات والملفات الناتجة", "resources", "الملفات"],
+    ["الملفات الناتجة", "إدارة سير العمل والنتائج", "artifacts", "الملفات"],
+    ["المهام المجدولة", "جدولة المهام وتسليمها عبر قنوات متعددة", "automation", "المهام"],
+    ["الخصوصية والبيانات", "مكان حفظ الجلسات ومتى تُرسل البيانات إلى مزوّد خارجي", "privacy", "الخصوصية"],
+    ["المظهر", "الوضع الداكن والخط وحجم العرض", "appearance", "المظهر واللغة"],
+    ["اللغة", "تغيير لغة الواجهة والإعدادات الإقليمية", "language", "المظهر واللغة"],
+    ["النماذج المحلية", "تنزيل GGUF والتحقق منه وتشغيل llama.cpp بلا API", "local-models", "النماذج"],
+    ["الاستخدام", "استهلاك الرموز وإحصاءات الاستخدام", "usage", "البيانات"],
+    ["إدارة الذاكرة", "ذاكرة المشروع المنظمة وتفضيلات المستخدم", "memory", "البيانات"],
+    ["GitHub", "قراءة المستودعات ومراجعة مقترحات الوكيل قبل رفعها", "github", "قدرات Hermes"],
+    ["مركز المهارات", "استعراض المهارات وتثبيتها وإزالتها وفحصها", "skills", "قدرات Hermes"],
+    ["الشخصية", "تعديل الشخصية وأسلوب الإجابة في SOUL.md", "persona", "قدرات Hermes"],
+    ["الأدوات", "الويب والطرفية والملفات والبرمجة والصور والصوت", "tools", "قدرات Hermes"],
+    ["MCP", "استعراض خوادم MCP وتثبيتها وتبديلها", "mcp", "قدرات Hermes"],
+    ["بيئات معزولة", "محلي وDocker وSSH وSingularity وModal", "sandboxes", "متقدم"],
+    ["الوكلاء الفرعيون", "وكلاء فرعيون معزولون وتنفيذ متوازٍ", "subagents", "متقدم"],
+    ["لوحة الأوامر", "Cmd/Ctrl+K والإجراءات العامة", "command-palette", "متقدم"]
+  ];
   var FEATURE_INFO = {
     integrations: ["التكاملات", "إعداد منصات المراسلة والبوابة ومراقبة حالة Hermes المحلي."],
     remote: ["الخوادم البعيدة", "تجد هنا إعداد الاتصال ببوابة Hermes."],
@@ -80,14 +101,15 @@
     appearance: ["المظهر", "إعدادات السمة والخط وحجم العرض."],
     usage: ["الاستخدام", "إحصاءات الرموز والنماذج واستخدام المحادثات."],
     memory: ["إدارة الذاكرة", "الذاكرة المنظمة وسياق المشروع والتفضيلات."],
-    skills: ["Skills Hub", "البحث عن المهارات وتثبيتها وإزالتها وفحصها."],
-    persona: ["Persona", "إعداد الشخصية والنبرة وأسلوب الإجابة."],
+    skills: ["مركز المهارات", "البحث عن المهارات وتثبيتها وإزالتها وفحصها."],
+    persona: ["الشخصية", "إعداد الشخصية والنبرة وأسلوب الإجابة."],
     tools: ["الأدوات", "إعداد أدوات الويب والطرفية والملفات والبرمجة والصور والصوت."],
     mcp: ["MCP", "استعراض خوادم MCP وتثبيتها وتبديلها."],
     sandboxes: ["بيئات معزولة", "بيئات محلية أو Docker أو SSH أو Singularity أو Modal."],
     subagents: ["الوكلاء الفرعيون", "وكلاء فرعيون معزولون وتنفيذ متوازٍ."],
     "command-palette": ["لوحة الأوامر", "الإجراءات العامة والأوامر المختصرة."],
     "local-models": ["النماذج المحلية", "تنزيل نموذج GGUF موثق وتشغيل استدلال llama.cpp داخل الجهاز."],
+    privacy: ["الخصوصية والبيانات", "راجع أين تُحفظ الجلسات وكيف تُرسل بيانات الرسائل والمرفقات."],
     github: ["GitHub", "ربط مستودعات GitHub وقراءة الملفات ومراجعة التغييرات ونتائج الاختبار."]
   };
   var SLASH_COMMANDS = {
@@ -143,7 +165,7 @@
     return {
       error: error || null,
       fakeMode: false,
-      message: message || "Starting Hermes",
+      message: message || "جارٍ تشغيل Hermes",
       phase: running === false ? "android.ready" : "android.backend",
       progress: progress == null ? 90 : progress,
       running: running !== false,
@@ -203,7 +225,7 @@
       "#hermes-android-boot-actions button{border:0;border-radius:10px;min-height:46px;padding:0 18px;background:#111827;color:#fff;font-size:15px;font-weight:700;box-shadow:0 12px 28px rgba(15,23,42,.18);}",
       "#hermes-android-boot-actions button.secondary{background:#e8edf3;color:#111827;box-shadow:none;}",
       "#hermes-android-boot-note{font-size:13px;line-height:1.55;color:#9aa4b2;text-align:center;}",
-      "#hermes-android-boot-log{max-height:240px;overflow:auto;text-align:left;white-space:pre-wrap;background:#111827;color:#d7dee8;border-radius:12px;padding:14px 16px;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;box-shadow:0 18px 36px rgba(15,23,42,.16);}",
+      "#hermes-android-boot-log{max-height:240px;overflow:auto;text-align:right;direction:rtl;unicode-bidi:plaintext;white-space:pre-wrap;overflow-wrap:anywhere;background:#111827;color:#d7dee8;border-radius:12px;padding:14px 16px;font:14px/1.65 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:normal;box-shadow:0 18px 36px rgba(15,23,42,.16);}",
       "#hermes-android-boot-log[hidden]{display:none!important;}",
       "#hermes-android-boot-bar{height:3px;border-radius:999px;background:#e5e7eb;overflow:hidden;}",
       "#hermes-android-boot-bar[hidden]{display:none!important;}",
@@ -269,15 +291,15 @@
       "  <div id=\"hermes-android-boot-brand\">",
       "    <div id=\"hermes-android-boot-mark\">H</div>",
       "    <div id=\"hermes-android-boot-heading\">",
-      "      <div id=\"hermes-android-boot-kicker\">Hermes Mobile</div>",
-      "      <div id=\"hermes-android-boot-title\">Hermes 正在启动</div>",
+      "      <div id=\"hermes-android-boot-kicker\">هيرمس للهاتف</div>",
+      "      <div id=\"hermes-android-boot-title\">جارٍ تشغيل Hermes</div>",
       "    </div>",
       "  </div>",
-      "  <div id=\"hermes-android-boot-text\">正在连接本机服务...</div>",
+      "  <div id=\"hermes-android-boot-text\">جارٍ الاتصال بالخدمة المحلية...</div>",
       "  <div id=\"hermes-android-boot-status\" hidden></div>",
       "  <div id=\"hermes-android-boot-actions\" hidden>",
-      "    <button id=\"hermes-android-boot-primary\" type=\"button\">重试</button>",
-      "    <button id=\"hermes-android-boot-secondary\" class=\"secondary\" type=\"button\">稍后再试</button>",
+      "    <button id=\"hermes-android-boot-primary\" type=\"button\">إعادة المحاولة</button>",
+      "    <button id=\"hermes-android-boot-secondary\" class=\"secondary\" type=\"button\">المحاولة لاحقًا</button>",
       "  </div>",
       "  <pre id=\"hermes-android-boot-log\" hidden></pre>",
       "  <div id=\"hermes-android-boot-note\">" + BOOT_CHECK_VERSION + "</div>",
@@ -302,12 +324,12 @@
 
   function callHermesAndroidJson(method, args) {
     if (!window.HermesAndroid || typeof window.HermesAndroid[method] !== "function") {
-      return { ok: false, error: method + " is unavailable" };
+      return { ok: false, error: "هذه العملية غير متاحة على هذا الجهاز." };
     }
     try {
       return JSON.parse(window.HermesAndroid[method].apply(window.HermesAndroid, args || []));
     } catch (error) {
-      return { ok: false, error: String(error && error.message || error) };
+      return { ok: false, error: arabicErrorText(error, "تعذّر تنفيذ العملية على الهاتف.") };
     }
   }
 
@@ -336,9 +358,10 @@
 
   function mobileDashboardLocale() {
     try {
-      return window.localStorage && (window.localStorage.getItem("hermes.mobile.locale") || window.localStorage.getItem("hermes.desktop.locale")) === "en" ? "en" : "zh";
+      var saved = window.localStorage && (window.localStorage.getItem("hermes.mobile.locale") || window.localStorage.getItem("hermes.desktop.locale"));
+      return saved === "en" ? "en" : (saved === "zh" || saved === "zh-CN") ? "zh" : "ar";
     } catch (error) {
-      return "zh";
+      return "ar";
     }
   }
 
@@ -355,7 +378,7 @@
   }
 
   function openTerminalMode() {
-    if (!window.confirm("\u7ec8\u7aef\u6a21\u5f0f\u9002\u5408\u9ad8\u7ea7\u64cd\u4f5c\u3002\u8fdb\u5165\u540e\u53ef\u4f7f\u7528\u9876\u90e8\u7684\u201c\u8fd4\u56de\u79fb\u52a8\u754c\u9762\u201d\u6309\u94ae\u8fd4\u56de\u3002\u662f\u5426\u7ee7\u7eed\uff1f")) {
+    if (!window.confirm("وضع الطرفية مخصص للعمليات المتقدمة. يمكنك العودة باستخدام زر «العودة إلى واجهة الهاتف» أعلى الشاشة. هل تريد المتابعة؟")) {
       return;
     }
     window.location.href = embeddedTerminalUrl || ("http://127.0.0.1:9129/chat?fresh=1&channel=android-mobile-terminal&locale=" + mobileDashboardLocale());
@@ -363,23 +386,36 @@
 
   function formatEmbeddedStatus(result) {
     if (!result || typeof result !== "object") {
-      return "لم تُعِد الخدمة المحلية حالة.";
+      return "لم تُعِد الخدمة المحلية حالتها. أعد المحاولة أو راجع سجل التطبيق.";
     }
     var lines = [];
-    lines.push("الخدمة المحلية: " + (result.running ? "قيد التشغيل" : "متوقف"));
+    lines.push("الخدمة المحلية: " + (result.running ? "قيد التشغيل" : "متوقفة"));
     if (result.url) {
-      lines.push("العنوان: " + result.url);
+      lines.push("عنوان الخدمة: " + result.url);
     }
     if (result.uptime_seconds != null) {
       lines.push("مدة التشغيل: " + result.uptime_seconds + " ثانية");
     }
     if (result.api_status) {
-      lines.push("استجابت واجهة الخدمة");
+      lines.push("واجهة الخدمة تستجيب.");
     }
     if (result.error) {
-      lines.push("خطأ: " + result.error);
+      console.warn("[Hermes Android] Embedded service startup detail:", result.error);
+      lines.push("تعذّر تشغيل الخدمة المحلية. راجع سجل التطبيق أو أعد المحاولة.");
     }
     return lines.join("\n");
+  }
+
+  function arabicErrorText(error, fallback) {
+    var raw = String(error && error.message || error || "").trim();
+    if (!raw) {
+      return fallback || "حدث خطأ غير متوقع. أعد المحاولة.";
+    }
+    if (/[\u0600-\u06FF]/.test(raw)) {
+      return raw;
+    }
+    console.warn("[Hermes Mobile] Unlocalized error detail:", raw);
+    return fallback || "حدث خطأ غير متوقع. أعد المحاولة.";
   }
 
   function inferProviderFromEndpoint(baseUrl) {
@@ -470,7 +506,14 @@
     return parsed.map(function (session) {
       var messages = Array.isArray(session && session.messages) ? session.messages.filter(function (message) {
         return message && (message.role === "user" || message.role === "assistant") && typeof message.content === "string";
-      }).slice(-40) : [];
+      }).slice(-40).map(function (message) {
+        var attachments = Array.isArray(message.attachments) ? message.attachments.filter(function (item) {
+          return item && typeof item.name === "string";
+        }).map(function (item) {
+          return { name: item.name, path: typeof item.path === "string" ? item.path : "" };
+        }) : [];
+        return { role: message.role, content: message.content, attachments: attachments };
+      }) : [];
       return {
         backendSessionId: session && session.backendSessionId || "",
         createdAt: session && session.createdAt || Date.now(),
@@ -522,7 +565,7 @@
   }
 
   function callMobileChatCompletion(config, messages) {
-    throw new Error("图形聊天正在接入本机 Hermes Agent。当前请从左侧抽屉进入“终端模式”使用完整 Agent。");
+    throw new Error("تعمل المحادثة الآن عبر Hermes المحلي. افتح «وضع الطرفية» من القائمة الجانبية لاستخدام الوكيل الكامل.");
   }
 
   function getDashboardSessionToken() {
@@ -624,7 +667,7 @@
   function presentTerminalOutput(value, promptSent) {
     var cleaned = stripTerminalOutput(value);
     if (/setup\s*required|setuprequired|needs a model provider|configure provider/i.test(cleaned)) {
-      return "需要完成模型设置。\n\n请打开“设置 > 模型与接口”，选择模型预设，填写 API 密钥并保存。完成后再回到对话发送消息。";
+      return "يجب إعداد النموذج أولًا.\n\nافتح «الإعدادات > النماذج والاتصالات»، واختر إعدادًا جاهزًا، وأدخل مفتاح API ثم احفظ. بعد ذلك، عُد إلى المحادثة لإرسال رسالتك.";
     }
     if (!promptSent) {
       if (/summoning|starting\s*agent|forgig session|HermesAgent|Messenger of the Digital Gods/i.test(cleaned)) {
@@ -800,8 +843,8 @@
         sawGeneration = true;
         var thinkingLine = line
           .replace(/[♡♢◇·•]+/g, " ")
-          .replace(/\breasoning\b/ig, "正在组织回复")
-          .replace(/\bthinking\b|\bsynthesizing\b|\bgenerating\b/ig, "正在整理上下文")
+          .replace(/\breasoning\b/ig, "جارٍ تنظيم الرد")
+          .replace(/\bthinking\b|\bsynthesizing\b|\bgenerating\b/ig, "جارٍ تجهيز السياق")
           .replace(/\.{2,}/g, "")
           .replace(/\s+\d+$/g, "")
           .replace(/\s+/g, " ")
@@ -834,7 +877,7 @@
     var tools = parts && Array.isArray(parts.tools) ? parts.tools : [];
     var streaming = Boolean(parts && parts.streaming);
     if (!thinking && !answer) {
-      thinking = "正在流式生成...";
+      thinking = "جارٍ إنشاء الرد مباشرةً...";
     }
     return [
       "<<<HERMES_THINKING>>>",
@@ -891,7 +934,7 @@
   function buildPtyWebSocketUrl() {
     var token = getDashboardSessionToken();
     if (!token) {
-      throw new Error("无法连接本机 Hermes 会话，请稍后重试或进入终端模式。");
+      throw new Error("تعذّر الاتصال بجلسة Hermes المحلية. أعد المحاولة لاحقًا أو افتح وضع الطرفية.");
     }
     var base = embeddedDashboardBaseUrl || "http://127.0.0.1:9129";
     var wsBase = base.replace(/^http:/, "ws:").replace(/^https:/, "ws:").replace(/\/+$/, "");
@@ -901,7 +944,7 @@
   function buildGatewayWebSocketUrl() {
     var token = getDashboardSessionToken();
     if (!token) {
-      throw new Error("无法连接本机 Hermes 会话，请稍后重试或进入终端模式。");
+      throw new Error("تعذّر الاتصال بجلسة Hermes المحلية. أعد المحاولة لاحقًا أو افتح وضع الطرفية.");
     }
     var base = embeddedDashboardBaseUrl || "http://127.0.0.1:9129";
     var wsBase = base.replace(/^http:/, "ws:").replace(/^https:/, "ws:").replace(/\/+$/, "");
@@ -921,7 +964,7 @@
         } catch (error) {
           // ignore close failures
         }
-        reject(new Error("本机服务响应超时"));
+        reject(new Error("انتهت مهلة استجابة الخدمة المحلية."));
       }, timeoutMs || 12000);
 
       function finish(error, value) {
@@ -971,17 +1014,17 @@
           return;
         }
         if (data.error) {
-          finish(new Error(data.error.message || "本机服务调用失败"));
+          finish(new Error(data.error.message || "فشل استدعاء الخدمة المحلية"));
           return;
         }
         finish(null, data.result || {});
       };
       ws.onerror = function () {
-        finish(new Error("本机服务连接失败"));
+        finish(new Error("تعذّر الاتصال بالخدمة المحلية"));
       };
       ws.onclose = function () {
         if (!settled) {
-          finish(new Error("本机服务连接已关闭"));
+          finish(new Error("أُغلق اتصال الخدمة المحلية"));
         }
       };
     });
@@ -1020,33 +1063,35 @@
       "  <div id=\"hermes-mobile-progress\">",
       "    <div id=\"hermes-mobile-progress-box\">",
       "      <div id=\"hermes-mobile-progress-logo\">H</div>",
-      "      <div id=\"hermes-mobile-progress-title\">Hermes 正在准备</div>",
-      "      <div id=\"hermes-mobile-progress-text\">正在检查本机服务、模型配置和移动端资源。</div>",
+      "      <div id=\"hermes-mobile-progress-title\">جارٍ تجهيز Hermes</div>",
+      "      <div id=\"hermes-mobile-progress-text\">جارٍ التحقق من الخدمة المحلية وإعداد النموذج وموارد الهاتف.</div>",
       "      <div id=\"hermes-mobile-progress-track\"><div id=\"hermes-mobile-progress-bar\"></div></div>",
       "    </div>",
       "  </div>",
       "  <div id=\"hermes-mobile-drawer-backdrop\" data-action=\"close-drawer\"></div>",
-      "  <aside id=\"hermes-mobile-drawer\" aria-label=\"Hermes 导航抽屉\">",
-      "    <div id=\"hermes-mobile-drawer-head\"><div id=\"hermes-mobile-drawer-brand\"><div class=\"mark\">H</div><div><strong>Hermes</strong><span>你的移动智能体</span></div></div><button id=\"hermes-mobile-drawer-close\" type=\"button\" data-action=\"close-drawer\" aria-label=\"关闭导航\">×</button></div>",
-      "    <div id=\"hermes-mobile-drawer-actions\"><button id=\"hermes-mobile-drawer-phone\" type=\"button\" data-action=\"view\" data-view=\"phone-control\"><span class=\"icon\">▣</span><span>接管手机</span></button><button id=\"hermes-mobile-drawer-new\" type=\"button\" data-action=\"new-session\"><span class=\"icon\">✎</span><span>发起新对话</span></button><label id=\"hermes-mobile-drawer-search-wrap\"><span class=\"icon\">⌕</span><input id=\"hermes-mobile-drawer-search\" type=\"search\" placeholder=\"搜索会话\" autocomplete=\"off\"></label></div>",
+      "  <aside id=\"hermes-mobile-drawer\" aria-label=\"قائمة تنقل Hermes\">",
+      "    <div id=\"hermes-mobile-drawer-head\"><div id=\"hermes-mobile-drawer-brand\"><div class=\"mark\">H</div><div><strong>Hermes</strong><span>وكيلك على الهاتف</span></div></div><button id=\"hermes-mobile-drawer-close\" type=\"button\" data-action=\"close-drawer\" aria-label=\"إغلاق قائمة التنقل\">×</button></div>",
+      "    <div id=\"hermes-mobile-drawer-actions\"><button id=\"hermes-mobile-drawer-phone\" type=\"button\" data-action=\"view\" data-view=\"phone-control\"><span class=\"icon\">▣</span><span>التحكم بالهاتف</span></button><button id=\"hermes-mobile-drawer-new\" type=\"button\" data-action=\"new-session\"><span class=\"icon\">✎</span><span>محادثة جديدة</span></button><label id=\"hermes-mobile-drawer-search-wrap\"><span class=\"icon\">⌕</span><input id=\"hermes-mobile-drawer-search\" type=\"search\" placeholder=\"ابحث في المحادثات\" autocomplete=\"off\"></label></div>",
       "    <div id=\"hermes-mobile-drawer-list\"></div>",
-      "    <div id=\"hermes-mobile-drawer-foot\"><div id=\"hermes-mobile-drawer-profile\"><div class=\"avatar\">H</div><div><strong>Hermes Mobile</strong><span>本机智能体</span></div></div><button id=\"hermes-mobile-drawer-settings\" type=\"button\" data-action=\"view\" data-view=\"settings\" aria-label=\"设置\">⚙</button></div>",
+      "    <div id=\"hermes-mobile-drawer-foot\"><div id=\"hermes-mobile-drawer-profile\"><div class=\"avatar\">H</div><div><strong>Hermes</strong><span>الوكيل المحلي</span></div></div><button id=\"hermes-mobile-drawer-settings\" type=\"button\" data-action=\"view\" data-view=\"settings\" aria-label=\"الإعدادات\">⚙</button></div>",
       "  </aside>",
       "  <header id=\"hermes-mobile-top\" class=\"gemini\">",
-      "    <button id=\"hermes-mobile-menu-button\" type=\"button\" data-action=\"open-drawer\" aria-label=\"打开导航\">☰</button>",
-      "    <div id=\"hermes-mobile-title\" class=\"gemini\"><strong>Hermes</strong><button id=\"hermes-mobile-subtitle\" type=\"button\" data-action=\"view\" data-view=\"models\">移动端</button></div>",
-      "    <button id=\"hermes-mobile-settings-button\" class=\"gemini\" type=\"button\" data-action=\"theme\" aria-label=\"切换夜间模式\">☾</button>",
+      "    <button id=\"hermes-mobile-menu-button\" type=\"button\" data-action=\"open-drawer\" aria-label=\"فتح قائمة التنقل\">☰</button>",
+      "    <div id=\"hermes-mobile-title\" class=\"gemini\"><strong>Hermes</strong><button id=\"hermes-mobile-subtitle\" type=\"button\" data-action=\"view\" data-view=\"models\">الهاتف</button></div>",
+      "    <button id=\"hermes-mobile-settings-button\" class=\"gemini\" type=\"button\" data-action=\"theme\" aria-label=\"التبديل إلى الوضع الداكن\">☾</button>",
       "  </header>",
       "  <main id=\"hermes-mobile-chat-body\">",
       "    <div id=\"hermes-mobile-view\"></div>",
       "  </main>",
       "  <footer id=\"hermes-mobile-bottom\">",
       "    <div id=\"hermes-mobile-attachment-row\" hidden></div>",
+      "    <div id=\"hermes-mobile-attachment-actions\" hidden aria-label=\"خيارات المرفقات\"><button type=\"button\" data-action=\"close-attachment-menu\" aria-label=\"إغلاق\">×</button><button type=\"button\" data-action=\"capture-photo\"><span aria-hidden=\"true\">◎</span> التقاط صورة بالكاميرا</button><button type=\"button\" data-action=\"pick-file\"><span aria-hidden=\"true\">▤</span> اختيار ملف من الجهاز</button></div>",
       "    <div id=\"hermes-mobile-inputbar\">",
-      "      <button type=\"button\" data-action=\"pick-file\" aria-label=\"选择文件\">＋</button>",
-      "      <textarea id=\"hermes-mobile-input\" rows=\"1\" placeholder=\"输入消息\"></textarea>",
-      "      <button id=\"hermes-mobile-speak\" type=\"button\" data-action=\"speak\" aria-label=\"语音播报\">🔊</button>",
-      "      <button id=\"hermes-mobile-send\" class=\"primary\" type=\"button\" data-action=\"send\" aria-label=\"发送\">➜</button>",
+      "      <button id=\"hermes-mobile-send\" class=\"primary\" type=\"button\" data-action=\"send\" aria-label=\"إرسال\" title=\"إرسال\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M20 12H5m7-7-7 7 7 7\"></path></svg></button>",
+      "      <textarea id=\"hermes-mobile-input\" rows=\"1\" placeholder=\"اكتب رسالتك\"></textarea>",
+      "      <button id=\"hermes-mobile-voice-input\" type=\"button\" data-action=\"voice-input\" aria-label=\"إملاء صوتي\" title=\"إملاء صوتي\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><rect x=\"9\" y=\"2\" width=\"6\" height=\"12\" rx=\"3\"></rect><path d=\"M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8\"></path></svg></button>",
+      "      <button id=\"hermes-mobile-attachment-toggle\" type=\"button\" data-action=\"attachment-menu\" aria-label=\"إضافة مرفق\" aria-expanded=\"false\" title=\"إضافة مرفق\">＋</button>",
+      "      <button id=\"hermes-mobile-speak\" type=\"button\" data-action=\"speak\" aria-label=\"القراءة الصوتية\" title=\"القراءة الصوتية\">♪</button>",
       "    </div>",
       "  </footer>",
       "</div>"
@@ -1068,6 +1113,8 @@
     var MAX_STREAM_SPEECH_CHARS = 240;
     var ttsEnabled = false;
     var lastSpokenAssistantText = "";
+    var imagePreviewCache = Object.create(null);
+    var imagePreviewPending = Object.create(null);
     var mobileRpcSessionId = sessions[0] && sessions[0].backendSessionId || "";
     var mobileRpcListenerSocket = null;
     var androidAdbState = { loading: false, error: "", data: null, message: "" };
@@ -1103,6 +1150,9 @@
     var themeButton = document.getElementById("hermes-mobile-settings-button");
     var speakButton = document.getElementById("hermes-mobile-speak");
     var attachmentRow = document.getElementById("hermes-mobile-attachment-row");
+    var attachmentActions = document.getElementById("hermes-mobile-attachment-actions");
+    var attachmentToggle = document.getElementById("hermes-mobile-attachment-toggle");
+    var voiceInputButton = document.getElementById("hermes-mobile-voice-input");
 
     try {
       ttsEnabled = window.localStorage && window.localStorage.getItem(MOBILE_TTS_ENABLED_KEY) === "1";
@@ -1113,7 +1163,7 @@
     function activeSession() {
       var found = sessions.filter(function (session) { return session.id === activeSessionId; })[0];
       if (!found) {
-        found = sessions[0] || createMobileSession([], "新会话");
+        found = sessions[0] || createMobileSession([], "محادثة جديدة");
         sessions = sessions.length ? sessions : [found];
         activeSessionId = found.id;
       }
@@ -1150,7 +1200,7 @@
 
     function setBusy(busy) {
       send.disabled = Boolean(busy);
-      send.textContent = busy ? "…" : "➜";
+      send.classList.toggle("busy", Boolean(busy));
       input.disabled = Boolean(busy);
     }
 
@@ -1159,7 +1209,7 @@
       shell.classList.toggle("dark", currentTheme === "dark");
       if (themeButton) {
         themeButton.textContent = currentTheme === "dark" ? "☀" : "☾";
-        themeButton.setAttribute("aria-label", currentTheme === "dark" ? "切换日间模式" : "切换夜间模式");
+        themeButton.setAttribute("aria-label", currentTheme === "dark" ? "التبديل إلى الوضع الفاتح" : "التبديل إلى الوضع الداكن");
       }
     }
 
@@ -1170,13 +1220,53 @@
       speakButton.classList.toggle("tts-on", Boolean(ttsEnabled));
       speakButton.classList.toggle("tts-off", !ttsEnabled);
       speakButton.classList.toggle("speaking", Boolean(isSpeaking));
-      speakButton.textContent = isSpeaking ? "■" : "🔊";
-      speakButton.setAttribute("aria-label", ttsEnabled ? "关闭语音播报" : "开启语音播报");
+      speakButton.innerHTML = isSpeaking
+        ? "<span aria-hidden=\"true\">■</span>"
+        : "<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M4 10v4h4l5 4V6l-5 4H4Z\"></path><path d=\"M16 9a5 5 0 0 1 0 6m2-9a9 9 0 0 1 0 12\"></path></svg>";
+      speakButton.setAttribute("aria-label", ttsEnabled ? "إيقاف القراءة الصوتية" : "تشغيل القراءة الصوتية");
+      speakButton.setAttribute("title", speakButton.getAttribute("aria-label"));
       try {
         window.localStorage.setItem(MOBILE_TTS_ENABLED_KEY, ttsEnabled ? "1" : "0");
       } catch (error) {
         // ignore
       }
+    }
+
+    function isImagePath(path) {
+      return /\.(?:png|jpe?g|webp|gif)$/i.test(String(path || ""));
+    }
+
+    function loadImagePreview(path) {
+      if (!path || imagePreviewCache[path] || imagePreviewPending[path] || !isImagePath(path)) return;
+      if (!window.hermesDesktop || typeof window.hermesDesktop.readImagePreviewDataUrl !== "function") return;
+      imagePreviewPending[path] = true;
+      Promise.resolve(window.hermesDesktop.readImagePreviewDataUrl(path)).then(function (dataUrl) {
+        if (dataUrl) imagePreviewCache[path] = dataUrl;
+      }).catch(function () {
+        // A missing, unsupported, or large image remains a normal file attachment.
+      }).finally(function () {
+        delete imagePreviewPending[path];
+        if (imagePreviewCache[path] && currentView === "chat") renderView();
+      });
+    }
+
+    function renderAttachmentCard(attachment, index, removable) {
+      var path = String(attachment && attachment.path || "");
+      var name = String(attachment && attachment.name || path.split(/[\\/]/).pop() || "ملف مرفق");
+      loadImagePreview(path);
+      var preview = path && imagePreviewCache[path]
+        ? "<img class=\"hermes-mobile-attachment-thumb\" src=\"" + escapeHtml(imagePreviewCache[path]) + "\" alt=\"معاينة " + escapeHtml(name) + "\">"
+        : "<span class=\"hermes-mobile-attachment-file\" aria-hidden=\"true\">" + (isImagePath(name) ? "▧" : "▤") + "</span>";
+      var remove = removable
+        ? "<button type=\"button\" data-action=\"remove-attachment\" data-index=\"" + index + "\" aria-label=\"إزالة " + escapeHtml(name) + "\" title=\"إزالة المرفق\">×</button>"
+        : "";
+      return "<div class=\"hermes-mobile-attachment\">" + preview + "<span class=\"hermes-mobile-attachment-name\" dir=\"auto\">" + escapeHtml(name) + "</span>" + remove + "</div>";
+    }
+
+    function setAttachmentMenu(open) {
+      if (!attachmentActions) return;
+      attachmentActions.hidden = !open;
+      if (attachmentToggle) attachmentToggle.setAttribute("aria-expanded", open ? "true" : "false");
     }
 
     function renderAttachments() {
@@ -1185,18 +1275,17 @@
       }
       attachmentRow.hidden = !selectedFiles.length;
       attachmentRow.innerHTML = selectedFiles.map(function (path, index) {
-        var name = String(path || "").split(/[\\\\/]/).pop() || "附件";
-        return "<div class=\"hermes-mobile-attachment\"><span>📎 " + escapeHtml(name) + "</span><button type=\"button\" data-action=\"remove-attachment\" data-index=\"" + index + "\" aria-label=\"移除附件\">×</button></div>";
+        return renderAttachmentCard({ path: path, name: String(path || "").split(/[\\\\/]/).pop() || "ملف مرفق" }, index, true);
       }).join("");
     }
 
     function refreshHeader() {
       if (modelStatus.checked && !modelStatus.hasApiKey) {
-        subtitle.textContent = "需要模型设置";
+        subtitle.textContent = "يلزم إعداد النموذج";
         return;
       }
       var modelLabel = modelStatus.model || config.model || "";
-      subtitle.textContent = modelLabel || "本机服务已就绪";
+      subtitle.textContent = modelLabel || "خدمة Hermes المحلية جاهزة";
     }
 
     function refreshModelStatus() {
@@ -1290,7 +1379,7 @@
     }
 
     function formatFeatureTime(value) {
-      if (!value) return "暂无";
+      if (!value) return "لا يوجد";
       try {
         var date = typeof value === "number" ? new Date(value * 1000) : new Date(value);
         if (!isNaN(date.getTime())) {
@@ -1453,13 +1542,13 @@
         return !keyword || sessionSearchText(session).indexOf(keyword) !== -1;
       });
       list.innerHTML = visible.length ? [
-        "<div class=\"hermes-mobile-drawer-group\">" + (keyword ? "搜索结果" : "最近") + "</div>",
+        "<div class=\"hermes-mobile-drawer-group\">" + (keyword ? "نتائج البحث" : "الأخيرة") + "</div>",
         visible.map(function (session) {
           var active = session.id === activeSessionId;
-          var lastMessage = session.messages && session.messages.length ? session.messages[session.messages.length - 1].content : "还没有消息";
-          return "<div class=\"hermes-mobile-drawer-session" + (active ? " active" : "") + "\"><button class=\"hermes-mobile-drawer-session-main\" type=\"button\" data-action=\"switch-session\" data-id=\"" + escapeHtml(session.id) + "\"><strong>" + escapeHtml(session.title || "新会话") + "</strong><small>" + escapeHtml(lastMessage) + "</small></button><button class=\"hermes-mobile-drawer-session-delete\" type=\"button\" data-action=\"delete-session\" data-id=\"" + escapeHtml(session.id) + "\" aria-label=\"删除会话\">×</button></div>";
+          var lastMessage = session.messages && session.messages.length ? session.messages[session.messages.length - 1].content : "لا توجد رسائل بعد";
+          return "<div class=\"hermes-mobile-drawer-session" + (active ? " active" : "") + "\"><button class=\"hermes-mobile-drawer-session-main\" type=\"button\" data-action=\"switch-session\" data-id=\"" + escapeHtml(session.id) + "\"><strong>" + escapeHtml(session.title || "محادثة جديدة") + "</strong><small>" + escapeHtml(lastMessage) + "</small></button><button class=\"hermes-mobile-drawer-session-delete\" type=\"button\" data-action=\"delete-session\" data-id=\"" + escapeHtml(session.id) + "\" aria-label=\"حذف المحادثة\">×</button></div>";
         }).join("")
-      ].join("") : "<div class=\"hermes-mobile-drawer-empty\">没有找到匹配的会话</div>";
+      ].join("") : "<div class=\"hermes-mobile-drawer-empty\">لم نعثر على محادثات مطابقة</div>";
     }
 
     function switchView(nextView) {
@@ -1567,7 +1656,7 @@
 
         function renderStructured(immediate) {
           pendingStructuredText = serializeAgentOutput({
-            thinking: reasoning || (answer ? "" : "正在流式生成..."),
+            thinking: reasoning || (answer ? "" : "جارٍ إنشاء الرد مباشرةً..."),
             tools: toolEvents,
             streaming: true,
             answer: answer
@@ -1655,7 +1744,7 @@
             reasoning = String(finalReasoning || "");
           }
           if (!answer.trim() && !reasoning.trim()) {
-            updateAssistantMessage(assistantIndex, "Hermes 暂无更多输出。");
+            updateAssistantMessage(assistantIndex, "لا توجد مخرجات أخرى من Hermes حاليًا.");
           } else {
             var finalOutput = serializeAgentOutput({ thinking: reasoning, tools: toolEvents, streaming: false, answer: answer });
             var queuedFinalSpeech = queueStreamedSpeech(true);
@@ -1673,7 +1762,7 @@
           if (asyncAssistantIndex >= 0 && messages[asyncAssistantIndex]) {
             return asyncAssistantIndex;
           }
-          messages.push({ role: "assistant", content: serializeAgentOutput({ thinking: "正在接收后台任务结果...", tools: [], streaming: true, answer: "" }) });
+          messages.push({ role: "assistant", content: serializeAgentOutput({ thinking: "جارٍ تلقي نتيجة المهمة في الخلفية...", tools: [], streaming: true, answer: "" }) });
           asyncAssistantIndex = messages.length - 1;
           currentView = "chat";
           renderView();
@@ -1683,7 +1772,7 @@
         function renderAsyncOutput(persist) {
           var index = ensureAsyncAssistantMessage();
           updateAssistantMessage(index, serializeAgentOutput({
-            thinking: asyncReasoning || (asyncAnswer ? "" : "正在接收后台任务结果..."),
+            thinking: asyncReasoning || (asyncAnswer ? "" : "جارٍ تلقي نتيجة المهمة في الخلفية..."),
             tools: asyncToolEvents,
             streaming: !persist,
             answer: asyncAnswer
@@ -1691,7 +1780,7 @@
         }
 
         function fail(message) {
-          finish(String(message || "本机 Hermes 连接失败。可以从左上抽屉进入终端模式继续使用。"), "");
+          finish(arabicErrorText(message, "تعذّر الاتصال بـHermes المحلي. يمكنك المتابعة عبر وضع الطرفية من القائمة الجانبية."), "");
         }
 
         function sendRpc(id, method, params) {
@@ -1707,7 +1796,8 @@
           var seed = [];
           messages.slice(0, Math.max(0, assistantIndex - 1)).forEach(function (message) {
             var content = parseSerializedAgentOutput(message.content || "").answer || message.content || "";
-            if (message.role === "assistant" && /无法恢复原会话|原会话暂时无法连接|正在连接本机 Hermes Agent/.test(content)) {
+            // تُستخدم العبارات الصينية القديمة للتعرّف على رسائل جلسات محفوظة من إصدار سابق فقط، ولا تظهر في الواجهة.
+            if (message.role === "assistant" && /无法恢复原会话|原会话暂时无法连接|تعذّر استعادة المحادثة السابقة|تعذّر الوصول إلى المحادثة السابقة|جارٍ الاتصال بوكيل Hermes المحلي/.test(content)) {
               if (seed.length && seed[seed.length - 1].role === "user") seed.pop();
               return;
             }
@@ -1743,7 +1833,7 @@
 
         function submitPrompt() {
           if (!activeSid) {
-            fail("无法创建本机 Hermes 会话。");
+            fail("تعذّر إنشاء جلسة Hermes المحلية.");
             return;
           }
           renderStructured();
@@ -1753,13 +1843,13 @@
         try {
           ws = new WebSocket(buildGatewayWebSocketUrl());
         } catch (error) {
-          fail("无法连接本机 Hermes。\n" + String(error && error.message || error));
+          fail("تعذّر الاتصال بـHermes المحلي. " + arabicErrorText(error, "تحقّق من الخدمة ثم أعد المحاولة."));
           return;
         }
 
         timeout = window.setTimeout(function () {
           if (!settled) {
-            fail(answer || "本机 Hermes 响应超时。");
+            fail(answer || "انتهت مهلة استجابة Hermes المحلي.");
           }
         }, 90000);
 
@@ -1845,20 +1935,20 @@
               }
             } else if (params.type === "error") {
               if (settled) {
-                asyncAnswer = String(payload.message || "后台任务返回错误。");
+                asyncAnswer = arabicErrorText(payload.message, "تعذّرت مهمة الخلفية.");
                 renderAsyncOutput(true);
                 asyncAnswer = "";
                 asyncReasoning = "";
                 asyncAssistantIndex = -1;
               } else {
-                fail(payload.message || "本机 Hermes 返回错误。");
+                fail(payload.message || "أعاد Hermes المحلي خطأ أثناء تنفيذ الطلب.");
               }
             }
             return;
           }
           if (data.id === createId) {
             if (data.error) {
-              fail(data.error.message || "无法创建本机 Hermes 会话。");
+              fail(data.error.message || "تعذّر إنشاء جلسة Hermes المحلية.");
               return;
             }
             activeSid = data.result && data.result.session_id || "";
@@ -1866,7 +1956,7 @@
             mobileRpcSessionId = activeSid;
             activeSession().backendSessionId = storedSessionId;
             saveMobileSessions(sessions);
-            if (migratingLegacySession) setTemporarySubtitle("旧会话已修复");
+            if (migratingLegacySession) setTemporarySubtitle("تم إصلاح ربط المحادثة السابقة.");
             submitPrompt();
             return;
           }
@@ -1876,11 +1966,11 @@
                 migratingLegacySession = true;
                 activeSid = "";
                 mobileRpcSessionId = "";
-                setTemporarySubtitle("正在修复旧会话");
+                setTemporarySubtitle("جارٍ إصلاح ربط المحادثة السابقة...");
                 createBackendSession();
                 return;
               }
-              fail("无法恢复原会话，已停止发送且不会自动新建会话。请稍后重试。\n" + (data.error.message || "session resume failed"));
+              fail("تعذّر استعادة المحادثة السابقة، وأوقفنا الإرسال دون إنشاء محادثة جديدة تلقائيًا. " + arabicErrorText(data.error.message, "أعد المحاولة لاحقًا."));
               return;
             }
             activeSid = data.result && data.result.session_id || activeSid;
@@ -1891,15 +1981,17 @@
             return;
           }
           if (data.id === submitId && data.error) {
-            var errorMessage = data.error.message || "本机 Hermes 无法发送消息。";
-            if (/session not found/i.test(errorMessage)) errorMessage = "原会话暂时无法连接，已保留会话绑定且不会自动新建。请重新发送。";
+            var rawErrorMessage = String(data.error.message || "");
+            var errorMessage = /session not found/i.test(rawErrorMessage)
+              ? "تعذّر الوصول إلى المحادثة السابقة. احتفظنا بارتباطها ولن ننشئ محادثة جديدة تلقائيًا؛ أعد الإرسال لاحقًا."
+              : arabicErrorText(rawErrorMessage, "تعذّر إرسال الرسالة إلى Hermes المحلي.");
             fail(errorMessage);
           }
         };
 
         ws.onerror = function () {
           if (!settled) {
-            fail("本机 Hermes 连接失败。可以从左上抽屉进入终端模式继续使用。");
+            fail("تعذّر الاتصال بـHermes المحلي. يمكنك المتابعة عبر وضع الطرفية من القائمة الجانبية.");
           }
         };
 
@@ -2097,13 +2189,13 @@
         window.speechSynthesis.cancel();
       }
       syncTtsButton();
-      setTemporarySubtitle("播报已停止");
+      setTemporarySubtitle("توقفت القراءة الصوتية");
     }
 
     async function speakTextNow(text) {
       var content = String(text || "").trim();
       if (!content) {
-        setTemporarySubtitle("没有可播报的内容");
+        setTemporarySubtitle("لا يوجد محتوى لقراءته صوتيًا");
         return;
       }
       try {
@@ -2116,7 +2208,7 @@
         if (window.HermesAndroid && typeof window.HermesAndroid.speakText === "function") {
           var nativeResult = JSON.parse(window.HermesAndroid.speakText(JSON.stringify({ text: content, language: currentLocale === "zh" ? "zh-CN" : currentLocale === "en" ? "en" : "ar" }), 30000));
           if (nativeResult.ok) {
-            setTemporarySubtitle("正在播报");
+            setTemporarySubtitle("جارٍ نطق الرد");
             window.setTimeout(function () {
               if (isCurrentSpeechRequest(speechRequestId)) {
                 isSpeaking = false;
@@ -2126,7 +2218,7 @@
             }, Math.min(12000, Math.max(1800, content.length * 180)));
             return;
           }
-          logMobileEvent("native-tts-failed", { error: String(nativeResult.error || "语音播报失败") });
+          logMobileEvent("native-tts-failed", { error: String(nativeResult.error || "تعذّرت قراءة الرد صوتيًا") });
         }
         try {
           var audioResult = await requestDashboardJson("POST", "/api/audio/speak", { text: content }, true);
@@ -2145,7 +2237,7 @@
           if (!isCurrentSpeechRequest(speechRequestId)) {
             return;
           }
-          setTemporarySubtitle("正在播报");
+          setTemporarySubtitle("جارٍ نطق الرد");
           window.setTimeout(function () {
             if (isCurrentSpeechRequest(speechRequestId)) {
               isSpeaking = false;
@@ -2173,17 +2265,17 @@
             refreshHeader();
           };
           window.speechSynthesis.speak(utterance);
-          setTemporarySubtitle("正在播报");
+          setTemporarySubtitle("جارٍ نطق الرد");
           return;
         }
         isSpeaking = false;
         syncTtsButton();
-        setTemporarySubtitle("当前设备暂不支持播报");
+        setTemporarySubtitle("لا يدعم هذا الجهاز القراءة الصوتية حاليًا");
       } catch (error) {
         isSpeaking = false;
         syncTtsButton();
         logMobileEvent("tts-failed", { error: String(error && error.message || error) });
-        setTemporarySubtitle("播报失败");
+        setTemporarySubtitle("تعذّرت القراءة الصوتية");
       }
     }
 
@@ -2236,8 +2328,8 @@
 
         audio.__hermesFinish = finish;
         audio.onended = function () { finish(null); };
-        audio.onerror = function () { finish(new Error("音频播放失败")); };
-        setTemporarySubtitle("正在播报");
+        audio.onerror = function () { finish(new Error("تعذّر تشغيل الصوت")); };
+        setTemporarySubtitle("جارٍ نطق الرد");
         audio.play().then(function () {
           logMobileEvent("dashboard-audio-tts-playing", { length: String(sourceText || "").length });
         }).catch(finish);
@@ -2254,7 +2346,7 @@
       syncTtsButton();
       var text = (input.value || "").trim() || latestAssistantText();
       if (!text) {
-        setTemporarySubtitle("语音播报已开启");
+        setTemporarySubtitle("تم تفعيل القراءة الصوتية");
         return;
       }
       speakTextNow(text);
@@ -2311,9 +2403,14 @@
         return;
       }
       input.value = "";
-      var fileContext = selectedFiles.map(formatContextRef).filter(Boolean).join(" ");
+      var attachments = selectedFiles.map(function (path) {
+        var value = String(path || "");
+        return { name: value.split(/[\\/]/).pop() || "ملف مرفق", path: value };
+      });
+      var fileContext = attachments.map(function (attachment) { return formatContextRef(attachment.path); }).filter(Boolean).join(" ");
       var userContent = [text, fileContext].filter(Boolean).join("\n\n");
-      messages.push({ role: "user", content: userContent });
+      var visibleContent = text || (attachments.length ? "مرفق: " + attachments.map(function (item) { return item.name; }).join("، ") : "");
+      messages.push({ role: "user", content: visibleContent, attachments: attachments });
       selectedFiles = [];
       renderAttachments();
       persistActiveSession();
@@ -2323,12 +2420,12 @@
       try {
         await new Promise(function (resolve) { setTimeout(resolve, 20); });
         var assistantIndex = messages.length;
-        messages.push({ role: "assistant", content: "正在连接本机 Hermes Agent..." });
+        messages.push({ role: "assistant", content: "جارٍ الاتصال بوكيل Hermes المحلي..." });
         persistActiveSession();
         renderView();
         await streamHermesAgentReply(userContent, assistantIndex);
       } catch (error) {
-        appendAssistant(String(error && error.message || error));
+        appendAssistant(arabicErrorText(error, "تعذّر إرسال الرسالة. تحقّق من اتصال Hermes ثم أعد المحاولة."));
       } finally {
         setBusy(false);
         input.blur();
@@ -2338,12 +2435,12 @@
     function renderChat() {
       var html = [
         "<div id=\"hermes-mobile-hero\">",
-        "  <div id=\"hermes-mobile-hero-title\">今天想让 Hermes 做什么？</div>",
+        "  <div id=\"hermes-mobile-hero-title\">ماذا تريد من Hermes أن يفعل اليوم؟</div>",
         "</div>",
         "<div id=\"hermes-mobile-suggestions\">",
-        "  <button class=\"hermes-mobile-suggestion\" type=\"button\" data-action=\"suggest\" data-prompt=\"帮我整理今天要做的事情，并给出优先级。\">整理今天的任务</button>",
-        "  <button class=\"hermes-mobile-suggestion\" type=\"button\" data-action=\"suggest\" data-prompt=\"帮我检查当前模型配置是否合理。\">检查模型配置</button>",
-        "  <button class=\"hermes-mobile-suggestion\" type=\"button\" data-action=\"suggest\" data-prompt=\"我想在手机上使用 Hermes，请给我一个简短工作流。\">生成手机工作流</button>",
+        "  <button class=\"hermes-mobile-suggestion\" type=\"button\" data-action=\"suggest\" data-prompt=\"نظّم المهام التي عليّ إنجازها اليوم ورتّبها حسب الأولوية.\">نظّم مهام اليوم</button>",
+        "  <button class=\"hermes-mobile-suggestion\" type=\"button\" data-action=\"suggest\" data-prompt=\"تحقّق من إعداد النموذج الحالي وأخبرني إن كان مناسبًا.\">راجع إعداد النموذج</button>",
+        "  <button class=\"hermes-mobile-suggestion\" type=\"button\" data-action=\"suggest\" data-prompt=\"أريد استخدام Hermes على الهاتف؛ اقترح لي سير عمل مختصرًا.\">أنشئ سير عمل للهاتف</button>",
         "</div>",
         "<div id=\"hermes-mobile-stream\">"
       ];
@@ -2351,7 +2448,8 @@
         if (message.role === "assistant") {
           html.push(renderAssistantBubble(message.content || ""));
         } else {
-          html.push("<div class=\"hermes-mobile-bubble user\">" + escapeHtml(message.content || "") + "</div>");
+          var attachments = Array.isArray(message.attachments) ? message.attachments : [];
+          html.push("<div class=\"hermes-mobile-bubble user\"><div class=\"hermes-mobile-user-text\">" + escapeHtml(message.content || "") + "</div>" + (attachments.length ? "<div class=\"hermes-mobile-message-attachments\">" + attachments.map(function (item, index) { return renderAttachmentCard(item, index, false); }).join("") + "</div>" : "") + "</div>");
         }
       });
       html.push("</div>");
@@ -2365,15 +2463,15 @@
       }
       var html = ["<div class=\"hermes-mobile-bubble assistant hermes-mobile-agent-output\">"];
       if (parts.thinking) {
-        var thinkingPending = parts.streaming && /^正在流式生成/.test(parts.thinking);
-        html.push("<details class=\"hermes-mobile-reasoning-card" + (thinkingPending ? " pending" : "") + (parts.streaming ? " streaming" : "") + "\"" + (parts.streaming ? " open" : "") + "><summary>" + (parts.streaming ? "正在思考…" : "思考过程") + "</summary>" + (thinkingPending ? "" : "<p>" + escapeHtml(parts.thinking) + "</p>") + "</details>");
+        var thinkingPending = parts.streaming && /^(?:正在流式生成|جارٍ إنشاء الرد)/.test(parts.thinking);
+        html.push("<details class=\"hermes-mobile-reasoning-card" + (thinkingPending ? " pending" : "") + (parts.streaming ? " streaming" : "") + "\"" + (parts.streaming ? " open" : "") + "><summary>" + (parts.streaming ? "جارٍ التفكير…" : "التفكير") + "</summary>" + (thinkingPending ? "" : "<p>" + escapeHtml(parts.thinking) + "</p>") + "</details>");
       }
       if (parts.tools && parts.tools.length) {
         html.push("<div class=\"hermes-mobile-tool-trace\">" + parts.tools.map(function (tool) {
-          var state = tool.status === "complete" ? "完成" : (tool.status === "error" ? "失败" : "运行中");
+          var state = tool.status === "complete" ? "مكتمل" : (tool.status === "error" ? "فشل" : "قيد التشغيل");
           var detail = tool.summary || tool.error || tool.context || "";
-          var duration = tool.duration != null ? " · " + Number(tool.duration).toFixed(1) + "s" : "";
-          return "<details class=\"hermes-mobile-tool-call " + escapeHtml(tool.status || "running") + "\"" + (tool.status === "running" ? " open" : "") + "><summary><span>" + escapeHtml(tool.name || "tool") + "</span><em>" + state + duration + "</em></summary>" + (detail ? "<p>" + escapeHtml(detail) + "</p>" : "") + (tool.result ? "<pre>" + escapeHtml(tool.result) + "</pre>" : "") + "</details>";
+          var duration = tool.duration != null ? " · " + Number(tool.duration).toFixed(1) + " ث" : "";
+          return "<details class=\"hermes-mobile-tool-call " + escapeHtml(tool.status || "running") + "\"" + (tool.status === "running" ? " open" : "") + "><summary><span>" + escapeHtml(tool.name || "أداة") + "</span><em>" + state + duration + "</em></summary>" + (detail ? "<p>" + escapeHtml(detail) + "</p>" : "") + (tool.result ? "<pre>" + escapeHtml(tool.result) + "</pre>" : "") + "</details>";
         }).join("") + "</div>");
       }
       html.push("<div class=\"hermes-mobile-answer-text" + (parts.answer ? "" : " pending") + "\">" + escapeHtml(cleanAgentDeltaText(parts.answer || "")) + "</div>");
@@ -2384,7 +2482,7 @@
     function renderGroupedToolGrid(items) {
       var groups = [];
       (items || []).forEach(function (item) {
-        var group = item[3] || "其他";
+        var group = item[3] || "أخرى";
         var found = groups.filter(function (entry) { return entry.name === group; })[0];
         if (!found) {
           found = { name: group, items: [] };
@@ -2408,12 +2506,12 @@
       return [
         "<div class=\"hermes-mobile-panel\"><h2>" + escapeHtml(title) + "</h2><p>" + escapeHtml(description) + "</p>",
         "<div class=\"hermes-mobile-form-actions\">",
-        "<button class=\"secondary\" type=\"button\" data-action=\"mobile-back\">返回设置</button>",
-        "<button class=\"secondary\" type=\"button\" data-action=\"feature-refresh\" data-view=\"" + escapeHtml(viewName) + "\">刷新</button>",
-        "<button class=\"secondary\" type=\"button\" data-action=\"feature-open-dashboard\" data-view=\"" + escapeHtml(viewName) + "\">高级设置</button>",
+        "<button class=\"secondary\" type=\"button\" data-action=\"mobile-back\">العودة إلى الإعدادات</button>",
+        "<button class=\"secondary\" type=\"button\" data-action=\"feature-refresh\" data-view=\"" + escapeHtml(viewName) + "\">تحديث</button>",
+        "<button class=\"secondary\" type=\"button\" data-action=\"feature-open-dashboard\" data-view=\"" + escapeHtml(viewName) + "\">إعدادات متقدمة</button>",
         "</div>",
-        state.loading ? "<p>正在读取本机 Hermes 后端...</p>" : "",
-        state.error ? "<p>读取失败: " + escapeHtml(state.error) + "</p>" : "",
+        state.loading ? "<p>جارٍ تحميل بيانات الخدمة المحلية...</p>" : "",
+        state.error ? "<p role=\"alert\">تعذّر تحميل البيانات. تحقّق من الاتصال ثم أعد المحاولة.</p>" : "",
         "</div>"
       ].join("");
     }
@@ -2432,17 +2530,17 @@
       var parentPath = canGoUp ? currentPath.slice(0, currentPath.lastIndexOf("/")) : rootPath;
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("resources", "资源中心", "浏览本机 Hermes 管理的文件、产出资源和下载项。"),
-        currentPath ? "<div class=\"hermes-mobile-panel hermes-mobile-resource-path\"><p>当前位置: " + escapeHtml(currentPath) + "</p><div class=\"hermes-mobile-resource-actions\">" + (canGoUp ? "<button class=\"secondary\" type=\"button\" data-action=\"resource-open-dir\" data-path=\"" + escapeHtml(parentPath) + "\">返回上级</button>" : "") + (rootPath && currentPath !== rootPath ? "<button class=\"secondary\" type=\"button\" data-action=\"resource-open-dir\" data-path=\"" + escapeHtml(rootPath) + "\">根目录</button>" : "") + "</div></div>" : "",
+        renderFeatureHeader("resources", "الملفات والموارد", "استعراض الملفات والموارد التي يديرها Hermes والتنزيلات."),
+        currentPath ? "<div class=\"hermes-mobile-panel hermes-mobile-resource-path\"><p>المسار الحالي: " + escapeHtml(currentPath) + "</p><div class=\"hermes-mobile-resource-actions\">" + (canGoUp ? "<button class=\"secondary\" type=\"button\" data-action=\"resource-open-dir\" data-path=\"" + escapeHtml(parentPath) + "\">المجلد السابق</button>" : "") + (rootPath && currentPath !== rootPath ? "<button class=\"secondary\" type=\"button\" data-action=\"resource-open-dir\" data-path=\"" + escapeHtml(rootPath) + "\">المجلد الجذر</button>" : "") + "</div></div>" : "",
         entries.length ? "<div class=\"hermes-mobile-list\">" + entries.slice(0, 24).map(function (entry) {
           var isDir = Boolean(entry.is_directory || entry.isDirectory);
-          var name = entry.name || entry.path || "未命名";
-          var meta = isDir ? "文件夹" : formatBytes(entry.size);
+          var name = entry.name || entry.path || "عنصر بلا اسم";
+          var meta = isDir ? "مجلد" : formatBytes(entry.size);
           var path = entry.path || name;
           var action = isDir ? "resource-open-dir" : "resource-download";
-          var button = isDir ? "打开" : "下载";
+          var button = isDir ? "فتح" : "تنزيل";
           return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml((isDir ? "▣ " : "◇ ") + name) + "</strong><span>" + escapeHtml(meta) + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"" + action + "\" data-path=\"" + escapeHtml(path) + "\">" + button + "</button></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载资源..." : "当前没有可显示的资源。"),
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل الموارد..." : "لا توجد موارد لعرضها حاليًا."),
         "</div>"
       ].join("");
     }
@@ -2455,21 +2553,21 @@
       var blueprints = data.blueprints || [];
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("automation", "定时自动化", "查看 Cron 任务、投递目标和自动化模板。"),
-        "<div class=\"hermes-mobile-panel\"><h2>投递目标</h2><p>" + escapeHtml(targets.length ? targets.map(function (target) { return target.name || target.id; }).join("、") : "仅本地保存") + "</p></div>",
+        renderFeatureHeader("automation", "المهام المجدولة", "عرض مهام Cron ووجهات الإشعار وقوالب الأتمتة."),
+        "<div class=\"hermes-mobile-panel\"><h2>وجهات الإشعار</h2><p>" + escapeHtml(targets.length ? targets.map(function (target) { return target.name || target.id; }).join("، ") : "الحفظ محليًا فقط") + "</p></div>",
         jobs.length ? "<div class=\"hermes-mobile-list\">" + jobs.slice(0, 20).map(function (job) {
           var enabled = job.enabled !== false && job.paused !== true;
           var id = job.id || job.name || "";
           var profile = job.profile || "default";
-          var title = job.name || job.id || "未命名任务";
+          var title = job.name || job.id || "مهمة بلا اسم";
           var detail = [
-            job.schedule || "无计划",
-            enabled ? "启用" : "暂停",
-            "下次: " + formatFeatureTime(job.next_run || job.next_run_at || job.next_at)
+            job.schedule || "بلا جدول زمني",
+            enabled ? "مفعّلة" : "متوقفة مؤقتًا",
+            "التشغيل التالي: " + formatFeatureTime(job.next_run || job.next_run_at || job.next_at)
           ].join(" · ");
-          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(title) + "</strong><span>" + escapeHtml(detail) + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"cron-trigger\" data-job=\"" + escapeHtml(id) + "\" data-profile=\"" + escapeHtml(profile) + "\">立即运行</button><button class=\"secondary\" type=\"button\" data-action=\"" + (enabled ? "cron-pause" : "cron-resume") + "\" data-job=\"" + escapeHtml(id) + "\" data-profile=\"" + escapeHtml(profile) + "\">" + (enabled ? "暂停" : "恢复") + "</button></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载任务..." : "暂无定时任务。"),
-        "<div class=\"hermes-mobile-panel\"><h2>自动化模板</h2><p>" + escapeHtml(blueprints.length ? blueprints.slice(0, 6).map(function (item) { return item.title || item.name || item.key; }).join("、") : "暂无模板数据") + "</p></div>",
+          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(title) + "</strong><span>" + escapeHtml(detail) + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"cron-trigger\" data-job=\"" + escapeHtml(id) + "\" data-profile=\"" + escapeHtml(profile) + "\">تشغيل الآن</button><button class=\"secondary\" type=\"button\" data-action=\"" + (enabled ? "cron-pause" : "cron-resume") + "\" data-job=\"" + escapeHtml(id) + "\" data-profile=\"" + escapeHtml(profile) + "\">" + (enabled ? "إيقاف مؤقت" : "استئناف") + "</button></div></div>";
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل المهام..." : "لا توجد مهام مجدولة."),
+        "<div class=\"hermes-mobile-panel\"><h2>قوالب الأتمتة</h2><p>" + escapeHtml(blueprints.length ? blueprints.slice(0, 6).map(function (item) { return item.title || item.name || item.key; }).join("، ") : "لا توجد قوالب متاحة") + "</p></div>",
         "</div>"
       ].join("");
     }
@@ -2481,18 +2579,19 @@
       var platforms = data.messaging && data.messaging.platforms || [];
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("integrations", "接入", "查看消息平台配置、连接状态和 Gateway 运行状态。"),
-        "<div class=\"hermes-mobile-panel\"><h2>Gateway</h2><p>" + escapeHtml((status.gateway_running ? "运行中" : "未运行") + (status.gateway_state ? " · " + status.gateway_state : "")) + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"gateway-start\">启动</button><button class=\"secondary\" type=\"button\" data-action=\"gateway-stop\">停止</button></div></div>",
+        renderFeatureHeader("integrations", "التكاملات", "إدارة منصات المراسلة والاتصال وحالة البوابة."),
+        "<div class=\"hermes-mobile-panel\"><h2>البوابة (Gateway)</h2><p>" + escapeHtml((status.gateway_running ? "قيد التشغيل" : "متوقفة") + (status.gateway_state ? " · " + status.gateway_state : "")) + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"gateway-start\">تشغيل</button><button class=\"secondary\" type=\"button\" data-action=\"gateway-stop\">إيقاف</button></div></div>",
         platforms.length ? "<div class=\"hermes-mobile-list\">" + platforms.map(function (platform) {
-          var name = platform.name || platform.id || "未知平台";
-          var stateText = platform.state || (platform.configured ? "configured" : "not configured");
+          var name = platform.name || platform.id || "منصة غير معروفة";
+          var rawState = String(platform.state || (platform.configured ? "configured" : "not configured"));
+          var stateText = ({ configured: "مهيّأ", "not configured": "غير مهيّأ", running: "قيد التشغيل", stopped: "متوقف", connected: "متصل", disconnected: "غير متصل", error: "خطأ" })[rawState.toLowerCase()] || rawState;
           var detail = [
-            platform.enabled ? "已启用" : "未启用",
-            platform.configured ? "已配置" : "未配置",
+            platform.enabled ? "مفعّلة" : "غير مفعّلة",
+            platform.configured ? "مهيّأة" : "غير مهيّأة",
             stateText
           ].join(" · ");
-          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail) + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"platform-toggle\" data-platform=\"" + escapeHtml(platform.id || "") + "\" data-enabled=\"" + (platform.enabled ? "true" : "false") + "\" data-configured=\"" + (platform.configured ? "true" : "false") + "\" data-gateway-running=\"" + (platform.gateway_running ? "true" : "false") + "\">" + (platform.enabled ? "停用" : "启用") + "</button><button class=\"secondary\" type=\"button\" data-action=\"platform-test\" data-platform=\"" + escapeHtml(platform.id || "") + "\">测试</button></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载接入状态..." : "暂无消息平台配置。"),
+          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail) + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"platform-toggle\" data-platform=\"" + escapeHtml(platform.id || "") + "\" data-enabled=\"" + (platform.enabled ? "true" : "false") + "\" data-configured=\"" + (platform.configured ? "true" : "false") + "\" data-gateway-running=\"" + (platform.gateway_running ? "true" : "false") + "\">" + (platform.enabled ? "تعطيل" : "تفعيل") + "</button><button class=\"secondary\" type=\"button\" data-action=\"platform-test\" data-platform=\"" + escapeHtml(platform.id || "") + "\">اختبار</button></div></div>";
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل حالة التكاملات..." : "لا توجد منصات مراسلة مهيّأة."),
         "</div>"
       ].join("");
     }
@@ -2507,14 +2606,14 @@
       var pendingItems = pairing.pending || pairing.requests || [];
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("remote", "远程实例", "查看远程连接、配对请求、Profile 和后端健康状态。"),
-        "<div class=\"hermes-mobile-panel\"><h2>后端状态</h2><p>" + escapeHtml("Dashboard: " + (status.ok === false ? "异常" : "可用") + " · Gateway: " + (status.gateway_running ? "运行中" : "未运行")) + "</p></div>",
-        "<div class=\"hermes-mobile-panel\"><h2>配对请求</h2><p>" + escapeHtml(pendingItems.length ? pendingItems.length + " 个待处理请求" : "暂无待处理请求") + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"feature-open-dashboard\" data-view=\"remote\">打开远程设置</button></div></div>",
+        renderFeatureHeader("remote", "الخوادم البعيدة", "إدارة الاتصالات البعيدة وطلبات الاقتران وملفات التعريف وحالة الخدمة."),
+        "<div class=\"hermes-mobile-panel\"><h2>حالة الخدمة الخلفية</h2><p>" + escapeHtml("لوحة التحكم (Dashboard): " + (status.ok === false ? "غير متاحة" : "متاحة") + " · البوابة (Gateway): " + (status.gateway_running ? "قيد التشغيل" : "متوقفة")) + "</p></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>طلبات الاقتران</h2><p>" + escapeHtml(pendingItems.length ? pendingItems.length + " طلب قيد المراجعة" : "لا توجد طلبات معلّقة") + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"feature-open-dashboard\" data-view=\"remote\">فتح إعدادات الاتصال البعيد</button></div></div>",
         profileItems.length ? "<div class=\"hermes-mobile-list\">" + profileItems.slice(0, 12).map(function (profile) {
           var name = profile.name || profile.id || "default";
-          var detail = [profile.description || "", profile.active ? "当前" : ""].filter(Boolean).join(" · ") || "Profile";
+          var detail = [profile.description || "", profile.active ? "نشط" : ""].filter(Boolean).join(" · ") || "ملف تعريف";
           return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail) + "</span></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载远程信息..." : "暂无 Profile 列表。"),
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل بيانات الاتصال البعيد..." : "لا توجد ملفات تعريف متاحة."),
         "</div>"
       ].join("");
     }
@@ -2534,14 +2633,14 @@
       var active = memory.active || "built-in";
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("memory", "记忆管理", "查看结构化记忆、用户偏好和第三方记忆提供方。"),
-        "<div class=\"hermes-mobile-panel\"><h2>当前提供方</h2><p>" + escapeHtml(active === "built-in" ? "内置记忆" : active) + "</p></div>",
-        "<div class=\"hermes-mobile-panel\"><h2>内置记忆文件</h2><p>" + escapeHtml("项目记忆 " + formatBytes(files.memory || 0) + " · 用户偏好 " + formatBytes(files.user || 0)) + "</p></div>",
+        renderFeatureHeader("memory", "إدارة الذاكرة", "عرض الذاكرة المنظمة وتفضيلات المستخدم ومزوّدي الذاكرة الخارجيين."),
+        "<div class=\"hermes-mobile-panel\"><h2>المزوّد الحالي</h2><p>" + escapeHtml(active === "built-in" ? "الذاكرة المدمجة" : active) + "</p></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>ملفات الذاكرة المدمجة</h2><p>" + escapeHtml("ذاكرة المشروع " + formatBytes(files.memory || 0) + " · تفضيلات المستخدم " + formatBytes(files.user || 0)) + "</p></div>",
         providers.length ? "<div class=\"hermes-mobile-list\">" + providers.map(function (provider) {
           var name = provider.name || "provider";
-          var detail = [provider.description || "", provider.configured ? "已配置" : "未配置"].filter(Boolean).join(" · ");
-          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail || "记忆提供方") + "</span></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载记忆状态..." : "暂无第三方记忆提供方。"),
+          var detail = [provider.description || "", provider.configured ? "مهيّأ" : "غير مهيّأ"].filter(Boolean).join(" · ");
+          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail || "مزوّد ذاكرة") + "</span></div></div>";
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل حالة الذاكرة..." : "لا توجد مزوّدات ذاكرة خارجية."),
         "</div>"
       ].join("");
     }
@@ -2556,19 +2655,19 @@
       var enabled = skills.filter(function (skill) { return skill.enabled !== false; }).length;
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("skills", "Skills Hub", "查看已安装 Skills、Hub 来源和推荐技能。"),
-        "<div class=\"hermes-mobile-panel\"><h2>已安装 Skills</h2><p>" + escapeHtml(enabled + " 个启用 · " + skills.length + " 个已发现") + "</p></div>",
+        renderFeatureHeader("skills", "مركز المهارات", "استعراض المهارات المثبتة ومصادرها والمهارات المقترحة."),
+        "<div class=\"hermes-mobile-panel\"><h2>المهارات المثبتة</h2><p>" + escapeHtml(enabled + " مفعّلة · " + skills.length + " متاحة") + "</p></div>",
         skills.length ? "<div class=\"hermes-mobile-list\">" + skills.slice(0, 18).map(function (skill) {
-          var name = skill.name || "skill";
+          var name = skill.name || "مهارة";
           var detail = [
-            skill.enabled === false ? "已停用" : "启用",
+            skill.enabled === false ? "معطّلة" : "مفعّلة",
             skill.provenance || "",
-            skill.usage != null ? "使用 " + skill.usage : ""
+            skill.usage != null ? "عدد مرات الاستخدام: " + skill.usage : ""
           ].filter(Boolean).join(" · ");
-          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail || "Skill") + "</span></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载 Skills..." : "暂无已安装 Skills。"),
-        "<div class=\"hermes-mobile-panel\"><h2>Hub 来源</h2><p>" + escapeHtml(sources.length ? sources.map(function (source) { return source.label || source.id; }).join("、") : "暂无 Hub 来源状态") + "</p></div>",
-        featured.length ? "<div class=\"hermes-mobile-panel\"><h2>推荐 Skills</h2><p>" + escapeHtml(featured.slice(0, 6).map(function (item) { return item.name || item.identifier || item.title; }).filter(Boolean).join("、")) + "</p></div>" : "",
+          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail || "مهارة") + "</span></div></div>";
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل المهارات..." : "لا توجد مهارات مثبتة."),
+        "<div class=\"hermes-mobile-panel\"><h2>مصادر المهارات</h2><p>" + escapeHtml(sources.length ? sources.map(function (source) { return source.label || source.id; }).join("، ") : "لا توجد معلومات عن المصادر") + "</p></div>",
+        featured.length ? "<div class=\"hermes-mobile-panel\"><h2>مهارات مقترحة</h2><p>" + escapeHtml(featured.slice(0, 6).map(function (item) { return item.name || item.identifier || item.title; }).filter(Boolean).join("، ")) + "</p></div>" : "",
         "</div>"
       ].join("");
     }
@@ -2583,14 +2682,14 @@
       var soulText = String(soul.content || "").trim();
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("persona", "Persona", "查看当前 Profile、人设文件和输出风格配置。"),
-        "<div class=\"hermes-mobile-panel\"><h2>当前 Profile</h2><p>" + escapeHtml("当前 " + current + " · 默认 " + (active.active || "default")) + "</p></div>",
-        "<div class=\"hermes-mobile-panel\"><h2>SOUL.md</h2><p>" + escapeHtml(soul.exists ? "已配置 · " + soulText.length + " 字符" : "未配置") + "</p>" + (soulText ? "<p>" + escapeHtml(soulText.slice(0, 160)) + (soulText.length > 160 ? "..." : "") + "</p>" : "") + "</div>",
+        renderFeatureHeader("persona", "الشخصية", "إعداد الشخصية والنبرة وأسلوب الإجابة."),
+        "<div class=\"hermes-mobile-panel\"><h2>ملف التعريف النشط</h2><p>" + escapeHtml("النشط: " + current + " · الافتراضي: " + (active.active || "default")) + "</p></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>SOUL.md</h2><p>" + escapeHtml(soul.exists ? "مهيّأ · " + soulText.length + " حرفًا" : "غير مهيّأ") + "</p>" + (soulText ? "<p>" + escapeHtml(soulText.slice(0, 160)) + (soulText.length > 160 ? "..." : "") + "</p>" : "") + "</div>",
         profiles.length ? "<div class=\"hermes-mobile-list\">" + profiles.slice(0, 12).map(function (profile) {
           var name = profile.name || "default";
-          var detail = [profile.description || "", name === current ? "当前" : ""].filter(Boolean).join(" · ") || "Profile";
+          var detail = [profile.description || "", name === current ? "نشط" : ""].filter(Boolean).join(" · ") || "ملف تعريف";
           return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail) + "</span></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载 Persona..." : "暂无 Profile 列表。"),
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل ملفات التعريف..." : "لا توجد ملفات تعريف متاحة."),
         "</div>"
       ].join("");
     }
@@ -2601,17 +2700,17 @@
       var enabled = toolsets.filter(function (toolset) { return toolset.enabled; }).length;
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("tools", "工具集", "查看网页、终端、文件、代码、视觉、图像和 TTS 工具集状态。"),
-        "<div class=\"hermes-mobile-panel\"><h2>工具集状态</h2><p>" + escapeHtml(enabled + " 个启用 · " + toolsets.length + " 个可配置") + "</p></div>",
+        renderFeatureHeader("tools", "الأدوات", "عرض حالة أدوات الويب والطرفية والملفات والبرمجة والصور والنطق (TTS)."),
+        "<div class=\"hermes-mobile-panel\"><h2>حالة الأدوات</h2><p>" + escapeHtml(enabled + " مفعّلة · " + toolsets.length + " قابلة للإعداد") + "</p></div>",
         toolsets.length ? "<div class=\"hermes-mobile-list\">" + toolsets.slice(0, 20).map(function (toolset) {
-          var name = toolset.label || toolset.name || "toolset";
+          var name = toolset.label || toolset.name || "مجموعة أدوات";
           var detail = [
-            toolset.enabled ? "启用" : "停用",
-            toolset.configured ? "已配置" : "未配置",
-            Array.isArray(toolset.tools) ? toolset.tools.length + " 个工具" : ""
+            toolset.enabled ? "مفعّلة" : "معطّلة",
+            toolset.configured ? "مهيّأة" : "غير مهيّأة",
+            Array.isArray(toolset.tools) ? toolset.tools.length + " أداة" : ""
           ].filter(Boolean).join(" · ");
           return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail) + "</span></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载工具集..." : "暂无工具集数据。"),
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل الأدوات..." : "لا توجد بيانات للأدوات."),
         "</div>"
       ].join("");
     }
@@ -2624,18 +2723,18 @@
       var installed = catalog.filter(function (entry) { return entry.installed; }).length;
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("mcp", "MCP", "查看 MCP 服务器、连接方式和官方目录状态。"),
-        "<div class=\"hermes-mobile-panel\"><h2>MCP 服务器</h2><p>" + escapeHtml(servers.length + " 个已配置 · 目录 " + catalog.length + " 项 · 已安装 " + installed + " 项") + "</p></div>",
+        renderFeatureHeader("mcp", "MCP", "عرض خوادم MCP وطرق الاتصال وحالة الدليل الرسمي."),
+        "<div class=\"hermes-mobile-panel\"><h2>خوادم MCP</h2><p>" + escapeHtml(servers.length + " مهيّأ · الدليل " + catalog.length + " عنصر · المثبّت " + installed + " عنصر") + "</p></div>",
         servers.length ? "<div class=\"hermes-mobile-list\">" + servers.slice(0, 16).map(function (server) {
-          var name = server.name || "server";
+          var name = server.name || "خادم";
           var detail = [
-            server.enabled === false ? "停用" : "启用",
+            server.enabled === false ? "معطّل" : "مفعّل",
             server.transport || server.url && "HTTP/SSE" || server.command && "stdio" || "",
-            server.auth_type ? "认证 " + server.auth_type : ""
+            server.auth_type ? "المصادقة: " + server.auth_type : ""
           ].filter(Boolean).join(" · ");
-          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail || "MCP server") + "</span></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载 MCP..." : "暂无已配置 MCP 服务器。"),
-        catalog.length ? "<div class=\"hermes-mobile-panel\"><h2>目录示例</h2><p>" + escapeHtml(catalog.slice(0, 6).map(function (entry) { return entry.name; }).join("、")) + "</p></div>" : "",
+          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail || "خادم MCP") + "</span></div></div>";
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل خوادم MCP..." : "لا توجد خوادم MCP مهيّأة."),
+        catalog.length ? "<div class=\"hermes-mobile-panel\"><h2>أمثلة من الدليل</h2><p>" + escapeHtml(catalog.slice(0, 6).map(function (entry) { return entry.name; }).join("، ")) + "</p></div>" : "",
         "</div>"
       ].join("");
     }
@@ -2648,13 +2747,13 @@
       var totalTokens = Number(totals.total_input || 0) + Number(totals.total_output || 0) + Number(totals.total_cache_read || 0) + Number(totals.total_reasoning || 0);
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("usage", "用量", "查看最近 30 天 Token、会话、模型和工具使用统计。"),
-        "<div class=\"hermes-mobile-panel\"><h2>总览</h2><p>" + escapeHtml(formatFeatureNumber(totalTokens) + " tokens · " + formatFeatureNumber(totals.total_sessions) + " 会话 · " + formatFeatureNumber(totals.total_api_calls) + " API 调用") + "</p></div>",
+        renderFeatureHeader("usage", "الاستخدام", "إحصاءات الرموز والنماذج واستخدام المحادثات خلال آخر 30 يومًا."),
+        "<div class=\"hermes-mobile-panel\"><h2>ملخص الاستخدام</h2><p>" + escapeHtml(formatFeatureNumber(totalTokens) + " رمز · " + formatFeatureNumber(totals.total_sessions) + " جلسة · " + formatFeatureNumber(totals.total_api_calls) + " طلب API") + "</p></div>",
         byModel.length ? "<div class=\"hermes-mobile-list\">" + byModel.slice(0, 10).map(function (row) {
           var tokens = Number(row.input_tokens || 0) + Number(row.output_tokens || 0);
-          var detail = formatFeatureNumber(tokens) + " tokens · " + formatFeatureNumber(row.sessions) + " 会话";
-          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(row.model || "unknown") + "</strong><span>" + escapeHtml(detail) + "</span></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载用量..." : "暂无用量数据。"),
+          var detail = formatFeatureNumber(tokens) + " رمز · " + formatFeatureNumber(row.sessions) + " جلسة";
+          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(row.model || "غير معروف") + "</strong><span>" + escapeHtml(detail) + "</span></div></div>";
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل بيانات الاستخدام..." : "لا توجد بيانات استخدام بعد."),
         "</div>"
       ].join("");
     }
@@ -2665,16 +2764,22 @@
       var themes = data.themes && data.themes.themes || [];
       var active = data.themes && data.themes.active || "default";
       var font = data.font && data.font.font || "theme";
+      var themeLabels = { "default": "فيروزي Hermes", "default-large": "فيروزي Hermes — خط أكبر", "nous-blue": "أزرق Nous", "midnight": "منتصف الليل", "ember": "جمرة", "mono": "أحادي اللون", "cyberpunk": "سايبربانك" };
+      var themeDescriptions = { "default": "السمة الفيروزية الداكنة الكلاسيكية من Hermes.", "default-large": "سمة Hermes الكلاسيكية مع خط أكبر ومسافات أوسع.", "nous-blue": "سمة فاتحة بلمسات زرقاء على خلفية عاجية.", "midnight": "أزرق بنفسجي داكن مع لمسات باردة.", "ember": "تدرجات حمراء دافئة ولمسات نحاسية.", "mono": "درجات رمادية هادئة وبسيطة.", "cyberpunk": "أخضر نيون على خلفية سوداء." };
+      var fontLabels = { "theme": "حسب السمة", "system-sans": "خط نظام بلا تذييل", "system-serif": "خط نظام مزخرف", "system-mono": "خط أحادي المسافة" };
+      var activeLabel = themeLabels[active] || active;
+      var fontLabel = fontLabels[font] || font;
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("appearance", "外观", "查看桌面 Dashboard 主题、字体和移动端深色模式状态。"),
-        "<div class=\"hermes-mobile-panel\"><h2>当前外观</h2><p>" + escapeHtml("Dashboard 主题 " + active + " · 字体 " + font + " · 移动端 " + (currentTheme === "dark" ? "深色" : "浅色")) + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"appearance-mobile-theme\" data-theme=\"light\">浅色</button><button class=\"secondary\" type=\"button\" data-action=\"appearance-mobile-theme\" data-theme=\"dark\">深色</button></div></div>",
+        renderFeatureHeader("appearance", "المظهر", "إعداد سمة لوحة Hermes والخط والألوان على الهاتف."),
+        "<div class=\"hermes-mobile-panel\"><h2>السمة الحالية</h2><p>" + escapeHtml("سمة لوحة Hermes: " + activeLabel + " · الخط: " + fontLabel + " · الهاتف: " + (currentTheme === "dark" ? "داكن" : "فاتح")) + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"appearance-mobile-theme\" data-theme=\"light\">فاتح</button><button class=\"secondary\" type=\"button\" data-action=\"appearance-mobile-theme\" data-theme=\"dark\">داكن</button></div></div>",
         themes.length ? "<div class=\"hermes-mobile-list\">" + themes.slice(0, 12).map(function (theme) {
-          var name = theme.label || theme.name || "theme";
-          var detail = [theme.name === active ? "当前" : "", theme.description || ""].filter(Boolean).join(" · ") || "主题";
-          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail) + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"appearance-dashboard-theme\" data-theme=\"" + escapeHtml(theme.name || "default") + "\">应用</button></div></div>";
-        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "正在加载外观..." : "暂无主题数据。"),
-        "<div class=\"hermes-mobile-panel\"><h2>字体</h2><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"appearance-font\" data-font=\"theme\">跟随主题</button><button class=\"secondary\" type=\"button\" data-action=\"appearance-font\" data-font=\"system-sans\">系统无衬线</button><button class=\"secondary\" type=\"button\" data-action=\"appearance-font\" data-font=\"system-serif\">系统衬线</button><button class=\"secondary\" type=\"button\" data-action=\"appearance-font\" data-font=\"system-mono\">等宽字体</button></div></div>",
+          var themeId = theme.name || "default";
+          var name = themeLabels[themeId] || theme.label || themeId || "سمة";
+          var detail = [themeId === active ? "مفعّلة" : "", themeDescriptions[themeId] || theme.description || "سمة مخصصة"].filter(Boolean).join(" · ");
+          return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(name) + "</strong><span>" + escapeHtml(detail) + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"appearance-dashboard-theme\" data-theme=\"" + escapeHtml(themeId) + "\">تطبيق</button></div></div>";
+        }).join("") + "</div>" : renderFeatureEmpty(state.loading ? "جارٍ تحميل السمات..." : "لا توجد سمات متاحة."),
+        "<div class=\"hermes-mobile-panel\"><h2>الخط</h2><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"appearance-font\" data-font=\"theme\">حسب السمة</button><button class=\"secondary\" type=\"button\" data-action=\"appearance-font\" data-font=\"system-sans\">خط نظام بلا تذييل</button><button class=\"secondary\" type=\"button\" data-action=\"appearance-font\" data-font=\"system-serif\">خط نظام مزخرف</button><button class=\"secondary\" type=\"button\" data-action=\"appearance-font\" data-font=\"system-mono\">خط أحادي المسافة</button></div></div>",
         "</div>"
       ].join("");
     }
@@ -2683,7 +2788,7 @@
       return [
         "<div class=\"hermes-mobile-section\">",
         renderFeatureHeader("language", "اللغة", "تغيير لغة واجهة الهاتف ولوحة Hermes."),
-        "<div class=\"hermes-mobile-panel\"><h2>اللغة الحالية</h2><p>" + (currentLocale === "en" ? "English" : currentLocale === "zh" ? "简体中文" : "العربية") + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"ar\">العربية</button><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"en\">English</button><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"zh\">简体中文</button></div></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>اللغة الحالية</h2><p>" + (currentLocale === "en" ? "الإنجليزية" : currentLocale === "zh" ? "الصينية المبسطة" : "العربية") + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"ar\">العربية</button><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"en\">الإنجليزية</button><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"zh\">الصينية المبسطة</button></div></div>",
         "</div>"
       ].join("");
     }
@@ -2705,8 +2810,8 @@
       var data = androidAdbState.data || {};
       var connected = Boolean(data.connected);
       var statusClass = androidAdbState.error ? " error" : (connected ? " connected" : "");
-      var statusTitle = androidAdbState.loading ? "正在检查 ADB 状态" : (connected ? "手机已连接" : "尚未连接手机");
-      var statusDetail = androidAdbState.error || androidAdbState.message || (connected ? (data.output || "ADB 已就绪") : "先完成无线调试配对，再填写连接地址和端口。");
+      var statusTitle = androidAdbState.loading ? "جارٍ التحقق من حالة ADB" : (connected ? "الهاتف متصل" : "الهاتف غير متصل");
+      var statusDetail = androidAdbState.error ? "تعذّر التحقق من حالة ADB. أعد المحاولة بعد تفعيل التصحيح اللاسلكي." : (connected ? (data.output || "ADB جاهز") : "أكمِل الاقتران عبر التصحيح اللاسلكي، ثم أدخل عنوان الاتصال والمنفذ.");
       var savedEndpoint = "";
       try {
         var storedHost = localStorage.getItem("hermes.mobile.adb.host") || "";
@@ -2717,12 +2822,12 @@
       }
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("phone-control", "接管手机", "让本机 Hermes 通过无线 ADB 查看和操作这台 Android 手机。"),
-        "<div class=\"hermes-mobile-panel\"><div class=\"hermes-mobile-adb-status" + statusClass + "\"><span class=\"dot\"></span><div><h2>" + escapeHtml(statusTitle) + "</h2><p>" + escapeHtml(statusDetail) + "</p></div></div><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"adb-refresh\">重新检查</button><button class=\"secondary\" type=\"button\" data-action=\"adb-test\">测试控制</button></div></div>",
-        "<div class=\"hermes-mobile-panel\"><h2>第一次使用</h2><div class=\"hermes-mobile-guide\"><div class=\"hermes-mobile-guide-step\"><strong>开启开发者模式</strong><p>打开系统设置 → 关于手机，连续点击“系统版本/MIUI 版本”约 7 次，直到提示已进入开发者模式。</p></div><div class=\"hermes-mobile-guide-step\"><strong>打开无线调试</strong><p>进入设置 → 更多设置/系统 → 开发者选项 → 无线调试，并打开开关。</p></div><div class=\"hermes-mobile-guide-step\"><strong>使用配对码配对</strong><p>点“使用配对码配对设备”。配对窗口关闭、返回或重新进入后，配对码和端口可能立即重置。</p></div></div><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"adb-open-developer\">打开开发者选项</button><button class=\"primary\" type=\"button\" data-action=\"adb-open-wireless\">打开无线调试</button></div><div class=\"hermes-mobile-adb-note\">推荐先把 Hermes 与系统设置放进分屏，或将设置页以小窗打开。保持配对码窗口可见，再回到 Hermes 输入配对端口和 6 位配对码。</div></div>",
-        "<div class=\"hermes-mobile-panel\"><h2>第 1 步：配对</h2><div class=\"hermes-mobile-form\"><label>配对地址和端口<input id=\"hermes-mobile-adb-pair-endpoint\" placeholder=\"例如 192.168.1.8:37123\" inputmode=\"text\"></label><label>6 位配对码<input id=\"hermes-mobile-adb-pair-code\" placeholder=\"例如 123456\" inputmode=\"numeric\" maxlength=\"6\"></label><div class=\"hermes-mobile-form-actions\"><button class=\"primary\" type=\"button\" data-action=\"adb-pair\">开始配对</button></div></div></div>",
-        "<div class=\"hermes-mobile-panel\"><h2>第 2 步：连接</h2><p>回到无线调试主页，复制“IP 地址和端口”。注意这里的连接端口通常与刚才的配对端口不同。</p><div class=\"hermes-mobile-form\"><label>连接地址和端口<input id=\"hermes-mobile-adb-endpoint\" value=\"" + escapeHtml(savedEndpoint) + "\" placeholder=\"例如 192.168.1.8:40765\" inputmode=\"text\"></label><div class=\"hermes-mobile-form-actions\"><button class=\"primary\" type=\"button\" data-action=\"adb-connect\">连接手机</button></div></div></div>",
-        "<div class=\"hermes-mobile-panel\"><h2>使用说明</h2><p>连接成功后，Hermes Agent 会获得 <code>android_debug</code> 工具，可查看设备信息、截图、点击、输入、启动应用和执行 ADB Shell。涉及删除数据、卸载应用、恢复出厂设置等高风险操作仍应先征得你的确认。</p></div>",
+        renderFeatureHeader("phone-control", "التحكم بالهاتف", "ربط الهاتف عبر ADB اللاسلكي لعرض الجهاز والتحكم به من Hermes."),
+        "<div class=\"hermes-mobile-panel\"><div class=\"hermes-mobile-adb-status" + statusClass + "\"><span class=\"dot\"></span><div><h2>" + escapeHtml(statusTitle) + "</h2><p>" + escapeHtml(statusDetail) + "</p></div></div><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"adb-refresh\">إعادة التحقق</button><button class=\"secondary\" type=\"button\" data-action=\"adb-test\">اختبار التحكم</button></div></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>البدء لأول مرة</h2><div class=\"hermes-mobile-guide\"><div class=\"hermes-mobile-guide-step\"><strong>تفعيل خيارات المطوّر</strong><p>افتح إعدادات النظام ثم «حول الهاتف»، واضغط على «رقم الإصدار» نحو 7 مرات حتى تظهر رسالة تفعيل خيارات المطوّر.</p></div><div class=\"hermes-mobile-guide-step\"><strong>تفعيل التصحيح اللاسلكي</strong><p>انتقل إلى الإعدادات → خيارات المطوّر → التصحيح اللاسلكي، ثم فعّل الخيار.</p></div><div class=\"hermes-mobile-guide-step\"><strong>الاقتران باستخدام رمز</strong><p>اختر «الاقتران باستخدام رمز» وأبقِ نافذة الرمز مفتوحة. قد يتغيّر رمز الاقتران ومنفذه عند إغلاق النافذة أو مغادرتها.</p></div></div><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"adb-open-developer\">فتح خيارات المطوّر</button><button class=\"primary\" type=\"button\" data-action=\"adb-open-wireless\">فتح التصحيح اللاسلكي</button></div><div class=\"hermes-mobile-adb-note\">يمكنك عرض Hermes وإعدادات النظام في شاشة منقسمة أو نافذة صغيرة. أبقِ نافذة رمز الاقتران ظاهرة، ثم ارجع إلى Hermes وأدخل المنفذ والرمز المكوّن من 6 أرقام.</div></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>الخطوة 1: الاقتران</h2><div class=\"hermes-mobile-form\"><label>عنوان الاقتران والمنفذ<input id=\"hermes-mobile-adb-pair-endpoint\" placeholder=\"مثال: 192.168.1.8:37123\" inputmode=\"text\"></label><label>رمز الاقتران (6 أرقام)<input id=\"hermes-mobile-adb-pair-code\" placeholder=\"مثال: 123456\" inputmode=\"numeric\" maxlength=\"6\"></label><div class=\"hermes-mobile-form-actions\"><button class=\"primary\" type=\"button\" data-action=\"adb-pair\">بدء الاقتران</button></div></div></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>الخطوة 2: الاتصال</h2><p>ارجع إلى صفحة التصحيح اللاسلكي وانسخ «عنوان IP والمنفذ». قد يختلف منفذ الاتصال عن منفذ الاقتران.</p><div class=\"hermes-mobile-form\"><label>عنوان الاتصال والمنفذ<input id=\"hermes-mobile-adb-endpoint\" value=\"" + escapeHtml(savedEndpoint) + "\" placeholder=\"مثال: 192.168.1.8:40765\" inputmode=\"text\"></label><div class=\"hermes-mobile-form-actions\"><button class=\"primary\" type=\"button\" data-action=\"adb-connect\">اتصال الهاتف</button></div></div></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>ما الذي يمكن التحكم به؟</h2><p>بعد الاتصال، تتيح أداة <code>android_debug</code> عرض معلومات الجهاز والتقاط الشاشة والنقر والكتابة وفتح التطبيقات وتنفيذ أوامر ADB Shell. ستظل العمليات الحساسة، مثل حذف البيانات أو إزالة التطبيقات أو إعادة ضبط المصنع، بحاجة إلى موافقتك.</p></div>",
         "</div>"
       ].join("");
     }
@@ -2738,7 +2843,8 @@
       var downloadState = data.download_state || "not_downloaded";
       var runtime = data.runtime_state || "idle";
       var active = Boolean(data.running);
-      var message = localModelState.error || data.runtime_error || "";
+      var rawModelError = localModelState.error || data.runtime_error || "";
+      var message = rawModelError ? arabicErrorText(rawModelError, "تعذّر تشغيل النموذج المحلي. راجع مساحة التخزين وحالة المحرك ثم أعد المحاولة.") : "";
       var downloadLabel = downloadState === "downloaded" ? "تم تنزيل النموذج والتحقق من SHA-256" : downloadState === "downloading" ? "التنزيل جارٍ" : downloadState === "interrupted" ? "تنزيل غير مكتمل — يمكن استئنافه" : "النموذج غير موجود على الجهاز";
       var runtimeLabel = runtime === "running" ? "يعمل محليًا" : runtime === "loading" ? "يجري تحميل النموذج إلى الذاكرة" : runtime === "error" ? "تعذر تشغيل المحرك" : "متوقف";
       return [
@@ -2783,9 +2889,9 @@
       }).join("");
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("github", "GitHub", "اقرأ مستودعاتك واطلب تغييرات أو تشغيل GitHub Actions. الرفع أو تشغيل الاختبارات يظل اقتراحًا حتى تراجع payload والفرع في نافذة Android الأصلية وتوافق."),
-        "<div class=\"hermes-mobile-panel\"><h2>الحساب</h2><p>" + escapeHtml(connected ? "متصل باسم " + (githubState.status.login || "حساب GitHub") : "غير متصل") + "</p>" + (connected ? "<p>الرمز محفوظ مشفرًا داخل Android Keystore ولا يُرسل إلى JavaScript أو يسجل في السجلات.</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"github-refresh\">تحديث المستودعات</button><button class=\"secondary\" type=\"button\" data-action=\"github-proposals-refresh\">مقترحات الوكيل</button><button class=\"secondary\" type=\"button\" data-action=\"github-disconnect\">فصل الحساب</button></div>" : "<div class=\"hermes-mobile-form\"><label>Fine-grained Personal Access Token<input id=\"hermes-github-token\" type=\"password\" autocomplete=\"new-password\" placeholder=\"يُتحقق منه ثم يُحفظ مشفرًا فقط\"></label><p>أنشئ token محدودًا للمستودعات المطلوبة، مع Contents: read/write وMetadata: read. يلزم Actions: read لقراءة النتائج، وActions: write لطلب تشغيل workflow بموافقتك. لن يرفع الوكيل أو يشغّل workflow بلا موافقتك.</p><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"github-connect\">التحقق والربط</button></div></div>") + "</div>",
-        (githubState.error ? "<div class=\"hermes-mobile-panel\" role=\"alert\"><p>" + escapeHtml(githubState.error) + "</p></div>" : ""),
+        renderFeatureHeader("github", "GitHub", "استعرض مستودعاتك واقترح تغييرات أو تشغيل GitHub Actions. لا يُرفع شيء ولا يُشغّل اختبار قبل مراجعة المحتوى المقترح والفرع في نافذة Android والموافقة."),
+        "<div class=\"hermes-mobile-panel\"><h2>الحساب</h2><p>" + escapeHtml(connected ? "متصل باسم " + (githubState.status.login || "حساب GitHub") : "غير متصل") + "</p>" + (connected ? "<p>الرمز محفوظ مشفرًا في Android Keystore ولا يُرسل إلى JavaScript أو يُكتب في السجلات.</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"github-refresh\">تحديث المستودعات</button><button class=\"secondary\" type=\"button\" data-action=\"github-proposals-refresh\">مقترحات الوكيل</button><button class=\"secondary\" type=\"button\" data-action=\"github-disconnect\">فصل الحساب</button></div>" : "<div class=\"hermes-mobile-form\"><label>رمز وصول شخصي دقيق الصلاحيات (Fine-grained Personal Access Token)<input id=\"hermes-github-token\" type=\"password\" autocomplete=\"new-password\" placeholder=\"يُتحقق منه ثم يُحفظ مشفرًا فقط\"></label><p>أنشئ رمزًا محدودًا للمستودعات المطلوبة. امنحه صلاحية قراءة/كتابة Contents وقراءة Metadata. يلزم Actions: read لقراءة النتائج وActions: write لطلب تشغيل سير عمل بموافقتك. لا يرفع الوكيل تغييرات ولا يشغّل سير عمل دون موافقتك.</p><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"github-connect\">التحقق والربط</button></div></div>") + "</div>",
+        (githubState.error ? "<div class=\"hermes-mobile-panel\" role=\"alert\"><p>" + escapeHtml(arabicErrorText(githubState.error, "تعذّر إكمال العملية عبر GitHub. تحقّق من الحساب والصلاحيات ثم أعد المحاولة.")) + "</p></div>" : ""),
         connected ? "<div class=\"hermes-mobile-panel\"><h2>المستودع</h2><div class=\"hermes-mobile-form\"><label>المستودعات<select id=\"hermes-github-repo\" data-action=\"github-repo-select\"><option value=\"\">اختر مستودعًا</option>" + repoOptions + "</select></label><label>الفرع / المصدر<input id=\"hermes-github-branch\" value=\"" + escapeHtml(githubState.branch || selected && selected.default_branch || "main") + "\" autocomplete=\"off\"></label><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"github-files\">استعراض الملفات</button><button class=\"secondary\" type=\"button\" data-action=\"github-runs\">نتائج الاختبارات</button></div></div><p>عند اختيار الفرع الافتراضي، يجهّز الوكيل فرع مراجعة منفصلًا؛ لا تعديل مباشر للفرع الافتراضي.</p></div>" : "",
         connected && githubState.files.length ? "<div class=\"hermes-mobile-panel\"><h2>الملفات (" + githubState.files.length + ")</h2><div class=\"hermes-mobile-list\">" + fileRows + "</div>" + fileContent + "</div>" : "",
         connected ? "<div class=\"hermes-mobile-panel\"><h2>GitHub Actions / الاختبارات</h2><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"github-workflows\">عرض workflows</button><button class=\"secondary\" type=\"button\" data-action=\"github-runs\">تحديث النتائج</button></div>" + (workflowRows ? "<div class=\"hermes-mobile-list\">" + workflowRows + "</div>" : "<p>اعرض workflows المتاحة لطلب تشغيل اختبار.</p>") + (runRows || "<p>لا توجد نتائج محمّلة بعد؛ اختر مستودعًا وفرعًا ثم حدّث النتائج.</p>") + "</div>" : "",
@@ -2795,8 +2901,22 @@
       ].join("");
     }
 
+    function renderPrivacyPage() {
+      return [
+        "<div class=\"hermes-mobile-section\">",
+        "<div class=\"hermes-mobile-panel\"><h2>الخصوصية والبيانات</h2><p>ملخص واضح لمواضع حفظ بياناتك وما يحدث عند إرسال رسالة أو مرفق.</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"view\" data-view=\"settings\">العودة إلى الإعدادات</button></div></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>الجلسات على الهاتف</h2><p>يحفظ Hermes سجل الجلسات محليًا داخل تخزين التطبيق على الهاتف. يمكنك حذف جلسة من قائمة المحادثات؛ أما النسخ التي أُرسلت إلى خدمة أو مزوّد خارجي فتخضع لإعداداته وسياسة الاحتفاظ لديه.</p></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>إرسال الرسائل والمرفقات</h2><p>قبل الإرسال إلى عنوان HTTPS خارجي، يعرض التطبيق اسم المزوّد ويطلب موافقتك. إذا وافقت، يُرسل نص الرسالة ومراجع الملفات التي أرفقتها إلى المزوّد لمعالجتها؛ لا تُرسل الرسالة عند رفض الموافقة.</p></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>المفاتيح والتكاملات</h2><p>يُرسل مفتاح API إلى خدمة Hermes المحلية لإعداده، ولا يُحفظ كنص في واجهة الهاتف. يُحفظ رمز GitHub مشفّرًا في Android Keystore ولا يُمرّر إلى JavaScript.</p></div>",
+        "</div>"
+      ].join("");
+    }
+
     function renderFeaturePage(viewName) {
-      var info = FEATURE_INFO[viewName] || ["功能入口", "该能力会继续接入本机 Hermes。"];
+      var info = FEATURE_INFO[viewName] || ["واجهة الميزة", "سيُربط هذا الخيار لاحقًا بخدمة Hermes المحلية."];
+      if (viewName === "privacy") {
+        return renderPrivacyPage();
+      }
       if (viewName === "resources") {
         return renderResourcesPage();
       }
@@ -2845,14 +2965,14 @@
       return [
         "<div class=\"hermes-mobile-section\">",
         "<div class=\"hermes-mobile-panel\"><h2>" + escapeHtml(info[0]) + "</h2><p>" + escapeHtml(info[1]) + "</p></div>",
-        "<div class=\"hermes-mobile-panel\"><p>此入口已经分类保留。后续会逐步接入真实 Hermes 后端能力；当前需要完整能力时可从抽屉左上进入终端模式。</p></div>",
+        "<div class=\"hermes-mobile-panel\"><p>هذا الخيار محفوظ ضمن القسم المناسب. ستُربط وظائفه تدريجيًا بخدمة Hermes الفعلية؛ وللوصول إلى الميزات الكاملة، افتح وضع الطرفية من القائمة الجانبية.</p></div>",
         "</div>"
       ].join("");
     }
 
     function renderView() {
       body.classList.toggle("has-messages", currentView === "chat" && messages.length > 0);
-      var sessionPreview = messages.length ? messages[messages.length - 1].content : "还没有对话";
+      var sessionPreview = messages.length ? messages[messages.length - 1].content : "لا توجد محادثات بعد";
       var modelOptions = MODEL_PRESETS.map(function (preset, index) {
         var selected = preset.model && preset.model === config.model ? " selected" : "";
         if (!selected && !preset.model && !MODEL_PRESETS.some(function (item) { return item.model === config.model; })) {
@@ -2864,47 +2984,47 @@
         view.innerHTML = renderChat();
       } else if (currentView === "sessions") {
         view.innerHTML = [
-          "<div class=\"hermes-mobile-section\"><div class=\"hermes-mobile-panel\"><h2>会话</h2><p>管理手机端会话: 新建、切换、删除和清空当前会话。</p></div>",
-          "<div class=\"hermes-mobile-panel\"><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"new-session\">新建会话</button><button class=\"secondary\" type=\"button\" data-action=\"clear-session\">清空当前</button></div></div>",
+          "<div class=\"hermes-mobile-section\"><div class=\"hermes-mobile-panel\"><h2>المحادثات</h2><p>إدارة محادثات الهاتف: إنشاء محادثة أو التبديل بينها أو حذفها أو مسح الحالية.</p></div>",
+          "<div class=\"hermes-mobile-panel\"><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"new-session\">محادثة جديدة</button><button class=\"secondary\" type=\"button\" data-action=\"clear-session\">مسح الحالية</button></div></div>",
           "<div class=\"hermes-mobile-list\">",
           sessions.map(function (session) {
             var active = session.id === activeSessionId;
             var count = session.messages.length;
-            var preview = count ? session.messages[session.messages.length - 1].content : "空会话";
-            return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml((active ? "当前 · " : "") + session.title) + "</strong><span>" + escapeHtml(count + " 条消息 · " + preview) + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"switch-session\" data-id=\"" + escapeHtml(session.id) + "\">打开</button><button class=\"secondary\" type=\"button\" data-action=\"delete-session\" data-id=\"" + escapeHtml(session.id) + "\">删除</button></div></div>";
+            var preview = count ? session.messages[session.messages.length - 1].content : "محادثة فارغة";
+            return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml((active ? "الحالية · " : "") + session.title) + "</strong><span>" + escapeHtml(count + " رسالة · " + preview) + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"switch-session\" data-id=\"" + escapeHtml(session.id) + "\">فتح</button><button class=\"secondary\" type=\"button\" data-action=\"delete-session\" data-id=\"" + escapeHtml(session.id) + "\">حذف</button></div></div>";
           }).join(""),
           "</div></div>"
         ].join("");
       } else if (currentView === "models") {
         view.innerHTML = [
-          "<div class=\"hermes-mobile-section hermes-mobile-models-view\"><div class=\"hermes-mobile-panel\"><h2>模型设置</h2><p>模型和密钥由本机 Hermes 服务保存。移动前端只提交配置,不保存 API 密钥明文。</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"mobile-back\">返回聊天</button></div></div>",
+          "<div class=\"hermes-mobile-section hermes-mobile-models-view\"><div class=\"hermes-mobile-panel\"><h2>النماذج والاتصالات</h2><p>يحفظ Hermes المحلي إعداد النموذج والمفتاح. ترسل واجهة الهاتف الإعدادات إلى الخدمة ولا تحفظ مفتاح API كنص فيها.</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"mobile-back\">العودة إلى المحادثة</button></div></div>",
           "<div class=\"hermes-mobile-panel hermes-mobile-model-card\"><div class=\"hermes-mobile-form\">",
-          "  <label>模型预设<select id=\"hermes-mobile-model-preset\" data-action=\"model-preset\"><option value=\"\">选择预设</option>" + modelOptions + "</select></label>",
-          "  <label>API 端点<input id=\"hermes-mobile-model-endpoint\" type=\"url\" autocomplete=\"off\" value=\"" + escapeHtml(config.baseUrl || "") + "\"></label>",
-          "  <label>模型<input id=\"hermes-mobile-model-name\" type=\"text\" autocomplete=\"off\" value=\"" + escapeHtml(config.model || "") + "\"></label>",
-          "  <label>API 密钥<input id=\"hermes-mobile-model-key\" type=\"password\" autocomplete=\"off\" placeholder=\"密钥保存在本机 Hermes 服务中\"></label>",
-          "  <label>常用参数<textarea readonly>流式输出、温度、上下文长度、系统提示词等高级参数会继续接入桌面端同源设置；当前版本先保留入口。</textarea></label>",
-          "  <div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"model-test\">状态检查</button><button class=\"secondary\" type=\"button\" data-action=\"open-models\">高级设置</button><button type=\"button\" data-action=\"model-save\">保存</button></div>",
+          "  <label>إعداد جاهز للنموذج<select id=\"hermes-mobile-model-preset\" data-action=\"model-preset\"><option value=\"\">اختر إعدادًا</option>" + modelOptions + "</select></label>",
+          "  <label>عنوان API<input id=\"hermes-mobile-model-endpoint\" type=\"url\" autocomplete=\"off\" value=\"" + escapeHtml(config.baseUrl || "") + "\"></label>",
+          "  <label>اسم النموذج<input id=\"hermes-mobile-model-name\" type=\"text\" autocomplete=\"off\" value=\"" + escapeHtml(config.model || "") + "\"></label>",
+          "  <label>مفتاح API<input id=\"hermes-mobile-model-key\" type=\"password\" autocomplete=\"off\" placeholder=\"يُحفظ المفتاح في خدمة Hermes المحلية\"></label>",
+          "  <label>إعدادات متقدمة<textarea readonly>إعدادات البث ودرجة الحرارة وطول السياق وتعليمات النظام تُدار من إعدادات Hermes المتقدمة.</textarea></label>",
+          "  <div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"model-test\">فحص الاتصال</button><button class=\"secondary\" type=\"button\" data-action=\"open-models\">الإعدادات المتقدمة</button><button type=\"button\" data-action=\"model-save\">حفظ</button></div>",
           "</div></div></div>"
         ].join("");
       } else if (currentView === "settings") {
         view.innerHTML = [
-          "<div class=\"hermes-mobile-section\"><div class=\"hermes-mobile-settings-hero\"><h2>设置</h2><p>管理 Hermes 的连接、工作台、Agent 能力与使用偏好。</p></div>",
-          "<div class=\"hermes-mobile-panel hermes-mobile-community-card\"><h2>Hermes 社区</h2><p>加入交流群和 AI 手机社区，获取新版安装包、配置教程、常见问题与移动端玩法。</p><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"community\">进入社区</button></div></div>",
+          "<div class=\"hermes-mobile-section\"><div class=\"hermes-mobile-settings-hero\"><h2>الإعدادات</h2><p>إدارة اتصال Hermes وبيئة العمل وقدرات الوكيل والتفضيلات.</p></div>",
+          "<div class=\"hermes-mobile-panel hermes-mobile-community-card\"><h2>مجتمع Hermes</h2><p>أدلة الإعداد والأسئلة الشائعة وتحديثات تجربة الهاتف في مجتمع Hermes.</p><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"community\">زيارة المجتمع</button></div></div>",
           renderGroupedToolGrid(ALL_SETTINGS_TOOLS),
-          "<div class=\"hermes-mobile-panel\"><h2>高级工具</h2><p>需要使用命令行能力时，可进入终端模式。</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"terminal\">终端模式</button></div></div>",
+          "<div class=\"hermes-mobile-panel\"><h2>أدوات متقدمة</h2><p>للوصول إلى وظائف سطر الأوامر، افتح وضع الطرفية.</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"terminal\">وضع الطرفية</button></div></div>",
           "</div>"
         ].join("");
       } else {
         try {
           view.innerHTML = renderFeaturePage(currentView);
         } catch (error) {
-          var message = String(error && error.message || error || "未知错误");
-          var title = FEATURE_LABELS[currentView] && FEATURE_LABELS[currentView][0] || "能力页";
+          var message = arabicErrorText(error, "حدث خطأ أثناء عرض الصفحة.");
+          var title = FEATURE_LABELS[currentView] && FEATURE_LABELS[currentView][0] || "صفحة الميزة";
           view.innerHTML = [
             "<div class=\"hermes-mobile-section\">",
-            "<div class=\"hermes-mobile-panel\"><h2>" + escapeHtml(title) + "</h2><p>页面渲染失败: " + escapeHtml(message) + "</p></div>",
-            "<div class=\"hermes-mobile-panel\"><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"view\" data-view=\"settings\">返回设置</button><button class=\"secondary\" type=\"button\" data-action=\"feature-refresh\" data-view=\"" + escapeHtml(currentView) + "\">重试</button></div></div>",
+            "<div class=\"hermes-mobile-panel\"><h2>" + escapeHtml(title) + "</h2><p role=\"alert\">تعذّر عرض الصفحة. " + escapeHtml(message) + "</p></div>",
+            "<div class=\"hermes-mobile-panel\"><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"view\" data-view=\"settings\">العودة إلى الإعدادات</button><button class=\"secondary\" type=\"button\" data-action=\"feature-refresh\" data-view=\"" + escapeHtml(currentView) + "\">إعادة المحاولة</button></div></div>",
             "</div>"
           ].join("");
         }
@@ -2919,7 +3039,7 @@
     function newSession() {
       persistActiveSession();
       closeMobileRpcListener("mobile new session");
-      var session = createMobileSession([], "新会话");
+      var session = createMobileSession([], "محادثة جديدة");
       sessions.unshift(session);
       activeSessionId = session.id;
       mobileRpcSessionId = "";
@@ -2954,7 +3074,7 @@
         try {
           await requestDashboardJson("DELETE", "/api/sessions/" + encodeURIComponent(deleting.backendSessionId), null, true);
         } catch (error) {
-          appendAssistant("后端会话删除失败，已保留当前对话: " + String(error && error.message || error));
+          appendAssistant("تعذّر حذف الجلسة؛ احتفظنا بالمحادثة الحالية. " + arabicErrorText(error, "تحقّق من اتصال الخدمة المحلية."));
           return;
         }
       }
@@ -2963,7 +3083,7 @@
       }
       sessions = sessions.filter(function (session) { return session.id !== id; });
       if (!sessions.length) {
-        sessions = [createMobileSession([], "新会话")];
+        sessions = [createMobileSession([], "محادثة جديدة")];
       }
       if (activeSessionId === id) {
         activeSessionId = sessions[0].id;
@@ -2982,7 +3102,7 @@
         try {
           await requestDashboardJson("DELETE", "/api/sessions/" + encodeURIComponent(session.backendSessionId), null, true);
         } catch (error) {
-          appendAssistant("后端会话清空失败，已保留当前对话: " + String(error && error.message || error));
+          appendAssistant("تعذّر مسح الجلسة؛ احتفظنا بالمحادثة الحالية. " + arabicErrorText(error, "تحقّق من اتصال الخدمة المحلية."));
           return;
         }
       }
@@ -3063,7 +3183,7 @@
           var downloadUrl = base.replace(/\/+$/, "") + "/api/files/download?path=" + encodeURIComponent(target.getAttribute("data-path") || "") + "&token=" + encodeURIComponent(token || "");
           openExternalUrl(downloadUrl);
         } catch (error) {
-          appendAssistant("资源下载失败: " + String(error && error.message || error));
+          appendAssistant("تعذّر تنزيل المورد. " + arabicErrorText(error, "تحقّق من الاتصال ثم أعد المحاولة."));
         }
       } else if (action === "cron-trigger" || action === "cron-pause" || action === "cron-resume") {
         var jobId = target.getAttribute("data-job") || "";
@@ -3074,19 +3194,19 @@
         }
         try {
           await requestDashboardJson("POST", cronPath, {}, true);
-          setTemporarySubtitle(action === "cron-trigger" ? "任务已触发" : "任务状态已更新");
+          setTemporarySubtitle(action === "cron-trigger" ? "تم تشغيل المهمة" : "تم تحديث حالة المهمة");
           loadFeatureData("automation", { force: true });
         } catch (error) {
-          appendAssistant("定时任务操作失败: " + String(error && error.message || error));
+          appendAssistant("تعذّر تنفيذ إجراء المهمة المجدولة. " + arabicErrorText(error, "تحقّق من الاتصال ثم أعد المحاولة."));
         }
       } else if (action === "gateway-start" || action === "gateway-stop") {
         try {
           await requestDashboardJson("POST", action === "gateway-start" ? "/api/gateway/start" : "/api/gateway/stop", {}, true);
-          setTemporarySubtitle(action === "gateway-start" ? "Gateway 正在启动" : "Gateway 正在停止");
+          setTemporarySubtitle(action === "gateway-start" ? "جارٍ تشغيل البوابة" : "جارٍ إيقاف البوابة");
           loadFeatureData("integrations", { force: true });
           loadFeatureData("remote", { force: true });
         } catch (error) {
-          appendAssistant("Gateway 操作失败: " + String(error && error.message || error));
+          appendAssistant("تعذّر تنفيذ إجراء البوابة. " + arabicErrorText(error, "تحقّق من الاتصال ثم أعد المحاولة."));
         }
       } else if (action === "platform-toggle") {
         try {
@@ -3098,26 +3218,26 @@
           await requestDashboardJson("PUT", "/api/messaging/platforms/" + encodeURIComponent(togglePlatformId), { enabled: nextEnabled }, true);
           if ((nextEnabled && isConfigured) || (!nextEnabled && gatewayWasRunning)) {
             await requestDashboardJson("POST", "/api/gateway/restart", {}, true);
-            appendAssistant((nextEnabled ? "已启用" : "已停用") + "接入，并正在重启 Gateway。", { persist: false });
+            appendAssistant((nextEnabled ? "تم تفعيل" : "تم تعطيل") + " الاتصال، ويجري الآن إعادة تشغيل البوابة.", { persist: false });
           } else if (nextEnabled) {
-            appendAssistant("接入已启用，但配置尚未完成。请先在高级设置中补充必要信息。", { persist: false });
+            appendAssistant("تم تفعيل الاتصال، لكن الإعداد غير مكتمل. أضف المعلومات المطلوبة من الإعدادات المتقدمة.", { persist: false });
           } else {
-            appendAssistant("接入已停用。", { persist: false });
+            appendAssistant("تم تعطيل الاتصال.", { persist: false });
           }
-          setTemporarySubtitle(nextEnabled ? "接入已启用" : "接入已停用");
+          setTemporarySubtitle(nextEnabled ? "تم تفعيل الاتصال" : "تم تعطيل الاتصال");
           loadFeatureData("integrations", { force: true });
           loadFeatureData("remote", { force: true });
         } catch (error) {
-          appendAssistant("接入状态修改失败: " + String(error && error.message || error));
+          appendAssistant("تعذّر تعديل حالة الاتصال. " + arabicErrorText(error, "تحقّق من الإعدادات ثم أعد المحاولة."));
         }
       } else if (action === "platform-test") {
         try {
           var platformId = target.getAttribute("data-platform") || "";
           var testResult = await requestDashboardJson("POST", "/api/messaging/platforms/" + encodeURIComponent(platformId) + "/test", {}, true);
-          appendAssistant("接入测试: " + String(testResult && testResult.message || (testResult && testResult.ok ? "测试通过" : "测试未通过")));
+          appendAssistant("نتيجة اختبار الاتصال: " + (testResult && testResult.ok ? "نجح الاختبار." : "لم ينجح الاختبار."));
           loadFeatureData("integrations", { force: true });
         } catch (error) {
-          appendAssistant("接入测试失败: " + String(error && error.message || error));
+          appendAssistant("تعذّر اختبار الاتصال. " + arabicErrorText(error, "تحقّق من الإعدادات ثم أعد المحاولة."));
         }
       } else if (action === "local-model-refresh" || action === "local-model-download" || action === "local-model-start" || action === "local-model-stop" || action === "local-model-delete" || action === "local-model-cancel") {
         localModelState.error = "";
@@ -3289,12 +3409,12 @@
         renderView();
       } else if (action === "adb-open-developer") {
         if (!callHermesAndroidBoolean("openDeveloperOptions")) {
-          androidAdbState.error = "无法直接打开开发者选项，请从系统设置手动进入。";
+          androidAdbState.error = "تعذّر فتح خيارات المطوّر مباشرةً؛ افتحها يدويًا من إعدادات النظام.";
           renderView();
         }
       } else if (action === "adb-open-wireless") {
         if (!callHermesAndroidBoolean("openWirelessDebuggingSettings")) {
-          androidAdbState.error = "无法直接打开无线调试，请从开发者选项手动进入。";
+          androidAdbState.error = "تعذّر فتح التصحيح اللاسلكي مباشرةً؛ افتحه يدويًا من خيارات المطوّر.";
           renderView();
         }
       } else if (action === "adb-refresh") {
@@ -3306,16 +3426,16 @@
         var pairPort = pairParts ? Number(pairParts[2]) : 0;
         var pairCode = String((document.getElementById("hermes-mobile-adb-pair-code") || {}).value || "").trim();
         if (!pairPort || !/^\d{6}$/.test(pairCode)) {
-          androidAdbState.error = "请输入配对窗口中显示的配对端口和 6 位配对码。";
+          androidAdbState.error = "أدخل منفذ الاقتران والرمز المكوّن من 6 أرقام الظاهرين في نافذة الاقتران.";
           renderView();
           return;
         }
         target.disabled = true;
-        target.textContent = "正在配对";
+        target.textContent = "جارٍ الاقتران...";
         await new Promise(function (resolve) { window.setTimeout(resolve, 60); });
         var pairResult = callHermesAndroidJson("pairAndroidAdb", [pairHost, pairPort, pairCode]);
-        androidAdbState.error = pairResult.ok ? "" : (pairResult.error || pairResult.output || "配对失败");
-        androidAdbState.message = pairResult.ok ? "配对成功。现在回到无线调试主页，填写连接地址和连接端口。" : "";
+        androidAdbState.error = pairResult.ok ? "" : (pairResult.error || pairResult.output || "تعذّر الاقتران");
+        androidAdbState.message = pairResult.ok ? "تم الاقتران. ارجع إلى صفحة التصحيح اللاسلكي وأدخل عنوان الاتصال ومنفذه." : "";
         renderView();
       } else if (action === "adb-connect") {
         var adbEndpoint = String((document.getElementById("hermes-mobile-adb-endpoint") || {}).value || "").trim();
@@ -3323,7 +3443,7 @@
         var adbHost = adbParts ? adbParts[1].trim() : "";
         var adbPort = adbParts ? Number(adbParts[2]) : 0;
         if (!adbHost || !adbPort) {
-          androidAdbState.error = "请填写无线调试主页显示的 IP 地址和连接端口。";
+          androidAdbState.error = "أدخل عنوان IP ومنفذ الاتصال الظاهرين في صفحة التصحيح اللاسلكي.";
           renderView();
           return;
         }
@@ -3334,27 +3454,27 @@
           // ignore storage failures
         }
         target.disabled = true;
-        target.textContent = "正在连接";
+        target.textContent = "جارٍ الاتصال...";
         await new Promise(function (resolve) { window.setTimeout(resolve, 60); });
         var connectResult = callHermesAndroidJson("connectAndroidAdb", [adbHost, adbPort]);
-        androidAdbState.error = connectResult.connected ? "" : (connectResult.error || connectResult.output || "连接失败");
-        androidAdbState.message = connectResult.connected ? "连接成功，Hermes 已可以通过 ADB 接管手机。" : "";
+        androidAdbState.error = connectResult.connected ? "" : (connectResult.error || connectResult.output || "تعذّر الاتصال");
+        androidAdbState.message = connectResult.connected ? "تم الاتصال؛ أصبح Hermes قادرًا على التحكم بالهاتف عبر ADB." : "";
         androidAdbState.data = callHermesAndroidJson("getAndroidAdbStatus");
         renderView();
       } else if (action === "adb-test") {
         var devices = androidAdbState.data && androidAdbState.data.devices || [];
         var serial = devices.length ? devices[0].serial : "";
         if (!serial) {
-          androidAdbState.error = "尚未发现已连接设备，请先完成配对和连接。";
+          androidAdbState.error = "لم يُعثر على جهاز متصل. أكمِل الاقتران والاتصال أولًا.";
           renderView();
           return;
         }
         target.disabled = true;
-        target.textContent = "正在测试";
+        target.textContent = "جارٍ اختبار التحكم...";
         await new Promise(function (resolve) { window.setTimeout(resolve, 60); });
         var testAdbResult = callHermesAndroidJson("runAndroidAdbShell", [serial, "getprop ro.product.model"]);
-        androidAdbState.error = testAdbResult.ok ? "" : (testAdbResult.error || testAdbResult.output || "控制测试失败");
-        androidAdbState.message = testAdbResult.ok ? "控制测试成功，设备型号：" + String(testAdbResult.output || "Android") : "";
+        androidAdbState.error = testAdbResult.ok ? "" : (testAdbResult.error || testAdbResult.output || "تعذّر اختبار التحكم");
+        androidAdbState.message = testAdbResult.ok ? "نجح اختبار التحكم؛ طراز الجهاز: " + String(testAdbResult.output || "Android") : "";
         renderView();
       } else if (action === "language-set") {
         var requestedLocale = target.getAttribute("data-locale");
@@ -3375,18 +3495,18 @@
       } else if (action === "appearance-dashboard-theme") {
         try {
           await requestDashboardJson("PUT", "/api/dashboard/theme", { name: target.getAttribute("data-theme") || "default" }, true);
-          setTemporarySubtitle("Dashboard 主题已更新");
+          setTemporarySubtitle("تم تحديث سمة لوحة التحكم.");
           loadFeatureData("appearance", { force: true });
         } catch (error) {
-          appendAssistant("主题更新失败: " + String(error && error.message || error));
+          appendAssistant("تعذّر تحديث السمة. " + arabicErrorText(error, "تحقّق من اتصال الخدمة ثم أعد المحاولة."));
         }
       } else if (action === "appearance-font") {
         try {
           await requestDashboardJson("PUT", "/api/dashboard/font", { font: target.getAttribute("data-font") || "theme" }, true);
-          setTemporarySubtitle("字体已更新");
+          setTemporarySubtitle("تم تحديث الخط.");
           loadFeatureData("appearance", { force: true });
         } catch (error) {
-          appendAssistant("字体更新失败: " + String(error && error.message || error));
+          appendAssistant("تعذّر تحديث الخط. " + arabicErrorText(error, "تحقّق من اتصال الخدمة ثم أعد المحاولة."));
         }
       } else if (action === "theme") {
         applyShellTheme(currentTheme === "dark" ? "light" : "dark");
@@ -3412,23 +3532,77 @@
         switchSession(target.getAttribute("data-id") || "");
       } else if (action === "delete-session") {
         await deleteSession(target.getAttribute("data-id") || "");
+      } else if (action === "attachment-menu") {
+        setAttachmentMenu(Boolean(attachmentActions && attachmentActions.hidden));
+      } else if (action === "close-attachment-menu") {
+        setAttachmentMenu(false);
+      } else if (action === "capture-photo") {
+        setAttachmentMenu(false);
+        target.disabled = true;
+        try {
+          var photoPath = await window.hermesDesktop.capturePhoto(120000);
+          if (photoPath) {
+            if (selectedFiles.indexOf(photoPath) === -1) selectedFiles.push(photoPath);
+            renderAttachments();
+            setTemporarySubtitle("أُرفقت الصورة بالمحادثة.");
+          }
+        } catch (error) {
+          var cameraError = String(error && error.message || error);
+          logMobileEvent("camera-capture-failed", { error: cameraError });
+          setTemporarySubtitle(cameraError === "أُلغي التقاط الصورة." ? "أُلغيت عملية التصوير." : "تعذر التقاط الصورة. تحقق من توفر تطبيق كاميرا ثم حاول مجددًا.");
+        } finally {
+          target.disabled = false;
+        }
+      } else if (action === "voice-input") {
+        setAttachmentMenu(false);
+        if (!window.HermesAndroid || typeof window.HermesAndroid.recordSpeechText !== "function") {
+          setTemporarySubtitle("الإملاء الصوتي غير متاح على هذا الجهاز.");
+          return;
+        }
+        target.disabled = true;
+        target.classList.add("recording");
+        setTemporarySubtitle("جارٍ الاستماع باللغة العربية…");
+        try {
+          var speechResult = JSON.parse(window.HermesAndroid.recordSpeechText(JSON.stringify({ language: "ar-SA", prompt: "تحدث الآن" }), 60000));
+          if (!speechResult.ok) throw new Error(speechResult.error || "speech_recognition_failed");
+          var spokenText = String(speechResult.text || "").trim();
+          if (!spokenText) {
+            setTemporarySubtitle("لم يُلتقط كلام واضح؛ حاول مرة أخرى.");
+          } else {
+            var existingText = String(input.value || "").trim();
+            input.value = existingText ? existingText + " " + spokenText : spokenText;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input.focus();
+            setTemporarySubtitle("أُضيف النص الصوتي إلى الرسالة.");
+          }
+        } catch (error) {
+          logMobileEvent("voice-input-failed", { error: String(error && error.message || error) });
+          setTemporarySubtitle("تعذر تحويل الصوت إلى نص. تحقق من إذن الميكروفون وخدمة التعرف على الكلام.");
+        } finally {
+          target.disabled = false;
+          target.classList.remove("recording");
+        }
       } else if (action === "remove-attachment") {
         selectedFiles.splice(Number(target.getAttribute("data-index") || 0), 1);
         renderAttachments();
       } else if (action === "pick-file") {
+        setAttachmentMenu(false);
         try {
-          selectedFiles = await window.hermesDesktop.selectPaths({ multiple: true, title: "选择文件" });
+          var pickedPaths = await window.hermesDesktop.selectPaths({ multiple: true, title: "اختيار ملفات" });
+          (pickedPaths || []).forEach(function (path) {
+            if (path && selectedFiles.indexOf(path) === -1) selectedFiles.push(path);
+          });
           currentView = "chat";
           renderView();
         } catch (error) {
           logMobileEvent("pick-file-failed", { error: String(error && error.message || error) });
-          setTemporarySubtitle("文件选择失败");
+          setTemporarySubtitle("تعذّر اختيار الملفات. أعد المحاولة.");
         }
       } else if (action === "model-save") {
         var saveButton = target;
         var previousLabel = saveButton.textContent;
         saveButton.disabled = true;
-        saveButton.textContent = "保存中";
+        saveButton.textContent = "جارٍ الحفظ";
         var apiKeyInput = document.getElementById("hermes-mobile-model-key");
         config = {
           apiKey: "",
@@ -3437,11 +3611,11 @@
         };
         try {
           if (!config.baseUrl || !config.model) {
-            throw new Error("请先填写 API 端点和模型名称");
+            throw new Error("أدخل عنوان API واسم النموذج أولًا.");
           }
           var apiKeyValue = apiKeyInput ? apiKeyInput.value.trim() : "";
           if (!modelStatus.hasApiKey && !apiKeyValue) {
-            throw new Error("请填写 API 密钥");
+            throw new Error("أدخل مفتاح API.");
           }
           await saveModelToBackend(config, apiKeyValue);
           if (apiKeyInput) {
@@ -3450,21 +3624,21 @@
           saveMobileChatConfig(config);
           modelStatus = { checked: false, hasApiKey: false, model: config.model || "" };
           await refreshModelStatus();
-          appendAssistant("模型接口设置已保存。密钥已写入本机 Hermes 服务，前端不会保存明文。新会话会使用此配置。");
+          appendAssistant("حُفظت إعدادات النموذج. أُرسل المفتاح إلى خدمة Hermes المحلية، ولا تحفظ الواجهة نسخة صريحة منه. ستستخدم المحادثات الجديدة هذا الإعداد.");
         } catch (error) {
-          appendAssistant("模型接口保存失败: " + String(error && error.message || error));
+          appendAssistant("تعذّر حفظ إعدادات النموذج. " + arabicErrorText(error, "تحقّق من عنوان API ومفتاح API ثم أعد المحاولة."));
           refreshHeader();
         } finally {
           saveButton.disabled = false;
-          saveButton.textContent = previousLabel || "保存";
+          saveButton.textContent = previousLabel || "حفظ";
         }
       } else if (action === "model-test") {
         var diagnoseResult = runEmbeddedAgentCommand("diagnose");
         await refreshModelStatus();
         var statusText = formatEmbeddedStatus(diagnoseResult.status || diagnoseResult);
-        statusText += "\n模型配置: " + (modelStatus.hasApiKey ? "已完成" : "未完成");
+        statusText += "\nإعداد النموذج: " + (modelStatus.hasApiKey ? "مكتمل" : "غير مكتمل");
         if (modelStatus.model) {
-          statusText += "\n当前模型: " + modelStatus.model;
+          statusText += "\nالنموذج الحالي: " + modelStatus.model;
         }
         appendAssistant(statusText);
       } else if (action === "tool") {
@@ -3526,7 +3700,7 @@
       title.textContent = opts.title;
     }
     if (text) {
-      text.textContent = message || (error ? "启动失败，请重新打开 App。" : "正在连接本机服务...");
+      text.textContent = message || (error ? "فشل بدء التشغيل. أعد فتح التطبيق." : "جارٍ الاتصال بالخدمة المحلية...");
       text.style.color = error ? "#b91c1c" : "#6b7280";
     }
     if (note) {
@@ -3590,50 +3764,50 @@
   function startAndroidBootGate() {
     ensureAndroidBootOverlay();
     try {
-      updateAndroidBootOverlay("正在启动本机 Hermes 服务...", false, false, {
+      updateAndroidBootOverlay("جارٍ تشغيل خدمة Hermes المحلية...", false, false, {
         hideProgress: false,
-        title: "Hermes 正在启动"
+        title: "جارٍ تشغيل Hermes"
       });
       var startResult = startEmbeddedAgent();
       if (!startResult || !startResult.running) {
-        updateAndroidBootOverlay("本机 Hermes 服务没有启动成功。请先解决后端启动问题，再进入 App。", false, true, {
+        updateAndroidBootOverlay("تعذّر بدء خدمة Hermes المحلية. تحقّق من حالة الخلفية وأعد المحاولة قبل المتابعة.", false, true, {
           actions: true,
           hideProgress: true,
           logText: formatEmbeddedStatus(startResult),
           primaryAction: startAndroidBootGate,
-          primaryText: "重试启动",
+          primaryText: "إعادة محاولة التشغيل",
           statusItems: startResult ? [
-            { label: "后端", value: startResult.running ? "运行中" : "未运行" },
-            { label: "端口", value: startResult.port || "9129" },
-            { label: "模式", value: "本机" }
+            { label: "الخلفية", value: startResult.running ? "قيد التشغيل" : "متوقفة" },
+            { label: "المنفذ", value: startResult.port || "9129" },
+            { label: "الوضع", value: "الهاتف" }
           ] : null,
-          title: "服务启动失败"
+          title: "فشل بدء الخدمة"
         });
-        emit("bootProgress", bootProgress("Hermes backend failed", 100, false, startResult && startResult.error));
+        emit("bootProgress", bootProgress("تعذّر تشغيل خدمة Hermes المحلية.", 100, false, startResult && startResult.error));
         return;
       }
       rememberEmbeddedDashboard(startResult);
-      updateAndroidBootOverlay("本机 Hermes 服务已启动，正在打开工作台...", false, false, {
+      updateAndroidBootOverlay("بدأت خدمة Hermes المحلية؛ جارٍ فتح لوحة التحكم...", false, false, {
         hideProgress: false,
         statusItems: [
-          { label: "后端", value: "运行中" },
-          { label: "端口", value: startResult.port || "9129" },
-          { label: "版本", value: startResult.api_status && startResult.api_status.version || "Hermes" }
+          { label: "الخلفية", value: "قيد التشغيل" },
+          { label: "المنفذ", value: startResult.port || "9129" },
+          { label: "الإصدار", value: startResult.api_status && startResult.api_status.version || "Hermes" }
         ],
-        title: "Hermes 已就绪"
+        title: "Hermes جاهز"
       });
-      emit("bootProgress", bootProgress("Hermes backend ready", 100, false));
+      emit("bootProgress", bootProgress("خدمة Hermes المحلية جاهزة", 100, false));
       window.setTimeout(function () {
-        showEmbeddedLiteMode("Hermes 已就绪");
+        showEmbeddedLiteMode("Hermes جاهز");
       }, 250);
     } catch (error) {
       logMobileEvent("mobile-shell-start-failed", { error: String(error && error.message || error) });
-      updateAndroidBootOverlay("Hermes 正在准备界面，请稍后重试。", false, true, {
+      updateAndroidBootOverlay("جارٍ تجهيز واجهة Hermes؛ أعد المحاولة بعد قليل.", false, true, {
         actions: true,
         hideProgress: true,
         primaryAction: function () { window.location.reload(); },
-        primaryText: "重新打开",
-        title: "启动失败"
+        primaryText: "إعادة الفتح",
+        title: "فشل التشغيل"
       });
     }
   }
@@ -3657,7 +3831,7 @@
     if (request && request.path === "/api/config" && (!request.method || request.method === "GET")) {
       return { display: { language: currentLocale } };
     }
-    return Promise.reject(new Error("Android 版当前使用 APK 内置移动端能力。"));
+    return Promise.reject(new Error("يستخدم إصدار Android الحالي وظائف الهاتف المضمنة في APK."));
   }
 
   function unsupportedOk() {
@@ -3707,7 +3881,7 @@
 
   async function pickAndroidFilesIntoComposer() {
     logMobileEvent("pick-files-start");
-    var paths = await window.hermesDesktop.selectPaths({ multiple: true, title: "选择文件" });
+    var paths = await window.hermesDesktop.selectPaths({ multiple: true, title: "اختيار ملف" });
     logMobileEvent("pick-files-result", { count: paths && paths.length || 0, paths: paths || [] });
     if (!paths || !paths.length) {
       return [];
@@ -3760,7 +3934,7 @@
       var hasAddIcon =
         (
           Boolean(button.querySelector(".codicon-add,[class*='codicon-add']")) ||
-          /(^|\s)(\+|add)(\s|$)|add context|添加上下文|添加附件|选择文件|附件|文件/i.test(label)
+          /(^|\s)(\+|add)(\s|$)|add context|添加上下文|添加附件|اختيار ملف|附件|文件/i.test(label)
         );
 
       if (hasAddIcon) {
@@ -3828,8 +4002,8 @@
     var button = document.getElementById("hermes-mobile-theme-toggle");
     if (button) {
       button.textContent = isDark ? "☀" : "☾";
-      button.setAttribute("aria-label", isDark ? "切换白天模式" : "切换夜间模式");
-      button.setAttribute("title", isDark ? "切换白天模式" : "切换夜间模式");
+      button.setAttribute("aria-label", isDark ? "التبديل إلى الوضع الفاتح" : "التبديل إلى الوضع الداكن");
+      button.setAttribute("title", isDark ? "التبديل إلى الوضع الفاتح" : "التبديل إلى الوضع الداكن");
     }
     logMobileEvent("theme-change", { theme: next });
     return next;
@@ -3880,6 +4054,15 @@
         "#hermes-mobile-community-open-channel{background:linear-gradient(135deg,#06b6d4,#2563eb);color:#fff;}",
         "#hermes-mobile-community-copy-id{background:#e0f2fe;color:#075985;}",
         "#hermes-mobile-community-dismiss{background:#eef2f7;color:#172033;}",
+        "html.hermes-mobile-dark-mode #hermes-mobile-community-panel{background:linear-gradient(145deg,#142136,#18263c);color:#f0f4fb;border-color:#425570;}",
+        "html.hermes-mobile-dark-mode #hermes-mobile-community-close{background:#26354c;color:#f0f4fb;}",
+        "html.hermes-mobile-dark-mode #hermes-mobile-community-copy{color:#c5d1e1;}",
+        "html.hermes-mobile-dark-mode #hermes-mobile-community-copy strong{color:#fff;}",
+        "html.hermes-mobile-dark-mode #hermes-mobile-community-community{background:linear-gradient(135deg,rgba(37,99,235,.22),rgba(147,51,234,.2));color:#dce7f5;border-color:#4b6385;}",
+        "html.hermes-mobile-dark-mode #hermes-mobile-community-community strong{color:#f0f5ff;}",
+        "html.hermes-mobile-dark-mode #hermes-mobile-community-status{color:#9bb8ff;}",
+        "html.hermes-mobile-dark-mode #hermes-mobile-community-copy-id{background:#253a57;color:#d8e8ff;}",
+        "html.hermes-mobile-dark-mode #hermes-mobile-community-dismiss{background:#273448;color:#e6edf7;}",
         "@media(max-width:340px){#hermes-mobile-community-actions{grid-template-columns:1fr;}#hermes-mobile-community-title{font-size:18px;}#hermes-mobile-community-copy,#hermes-mobile-community-community{font-size:12px;}}"
       ].join("");
       document.head.appendChild(style);
@@ -3895,21 +4078,21 @@
     dialog.hidden = true;
     dialog.setAttribute("role", "dialog");
     dialog.setAttribute("aria-modal", "true");
-    dialog.setAttribute("aria-label", "交流群");
+    dialog.setAttribute("aria-label", "مجتمع Hermes");
     dialog.innerHTML = [
       "<div id=\"hermes-mobile-community-panel\">",
       "  <div id=\"hermes-mobile-community-head\">",
-      "    <div id=\"hermes-mobile-community-title\">交流群</div>",
-      "    <button id=\"hermes-mobile-community-close\" type=\"button\" aria-label=\"关闭\">×</button>",
+      "    <div id=\"hermes-mobile-community-title\">مجتمع Hermes</div>",
+      "    <button id=\"hermes-mobile-community-close\" type=\"button\" aria-label=\"إغلاق\">×</button>",
       "  </div>",
-      "  <p id=\"hermes-mobile-community-copy\">加入 <strong>Hermes mobile</strong> 交流群，获取新版安装包、配置教程、常见问题处理和手机端使用经验。群号：<strong>436742652</strong></p>",
-      "  <div id=\"hermes-mobile-community-community\"><strong>#AI手机社区</strong>这是一个 QQ 频道，频道号：<strong>pd51668397</strong>。也欢迎关注，一起交流手机 AI 工作流、移动端 Agent 和实用玩法。</div>",
+      "  <p id=\"hermes-mobile-community-copy\">انضم إلى مجموعة <strong>Hermes mobile</strong> للحصول على التحديثات وأدلة الإعداد والإجابات عن الأسئلة الشائعة وتجارب الاستخدام على الهاتف. رقم المجموعة: <strong>436742652</strong></p>",
+      "  <div id=\"hermes-mobile-community-community\"><strong>#مجتمع الذكاء الاصطناعي على الهاتف</strong> قناة QQ للمهتمين بأدوات الذكاء الاصطناعي على الهاتف. معرّف القناة: <strong>pd51668397</strong>. أهلًا بك لمناقشة مسارات العمل والوكلاء على الهاتف.</div>",
       "  <div id=\"hermes-mobile-community-status\"></div>",
       "  <div id=\"hermes-mobile-community-actions\">",
-      "    <button id=\"hermes-mobile-community-open-qq\" type=\"button\">打开 QQ 加群</button>",
-      "    <button id=\"hermes-mobile-community-open-channel\" type=\"button\">打开 QQ 频道</button>",
-      "    <button id=\"hermes-mobile-community-copy-id\" type=\"button\">复制群号</button>",
-      "    <button id=\"hermes-mobile-community-dismiss\" type=\"button\">关闭</button>",
+      "    <button id=\"hermes-mobile-community-open-qq\" type=\"button\">فتح QQ للانضمام</button>",
+      "    <button id=\"hermes-mobile-community-open-channel\" type=\"button\">فتح قناة QQ</button>",
+      "    <button id=\"hermes-mobile-community-copy-id\" type=\"button\">نسخ رقم المجموعة</button>",
+      "    <button id=\"hermes-mobile-community-dismiss\" type=\"button\">إغلاق</button>",
       "  </div>",
       "</div>"
     ].join("");
@@ -3930,9 +4113,9 @@
     dialog.querySelector("#hermes-mobile-community-copy-id").addEventListener("click", function (event) {
       var button = event.currentTarget;
       writeClipboardText(COMMUNITY_GROUP_ID).then(function (ok) {
-        button.textContent = ok ? "已复制" : "复制失败";
+        button.textContent = ok ? "تم النسخ" : "تعذّر النسخ";
         window.setTimeout(function () {
-          button.textContent = "复制群号";
+          button.textContent = "نسخ رقم المجموعة";
         }, 1200);
       });
     });
@@ -3963,7 +4146,7 @@
     }
     var status = document.getElementById("hermes-mobile-community-status");
     if (status) {
-      status.textContent = opened ? "已尝试打开 QQ。如果没有跳转，请复制群号手动搜索。" : "无法打开 QQ，请复制群号手动搜索。";
+      status.textContent = opened ? "حاولنا فتح QQ. إذا لم تنتقل الصفحة، انسخ رقم المجموعة وابحث عنها يدويًا." : "تعذّر فتح QQ. انسخ رقم المجموعة وابحث عنها يدويًا.";
     }
   }
 
@@ -3982,7 +4165,7 @@
     }
     var status = document.getElementById("hermes-mobile-community-status");
     if (status) {
-      status.textContent = opened ? "已尝试打开 QQ 频道。如果没有跳转，请在 QQ 搜索频道号 " + AI_MOBILE_CHANNEL_ID + "。" : "无法打开 QQ 频道，请在 QQ 搜索频道号 " + AI_MOBILE_CHANNEL_ID + "。";
+      status.textContent = opened ? "حاولنا فتح قناة QQ. إذا لم تنتقل الصفحة، فابحث عن رقم القناة في QQ: " + AI_MOBILE_CHANNEL_ID + "。" : "تعذّر فتح قناة QQ. ابحث عن رقم القناة في QQ: " + AI_MOBILE_CHANNEL_ID + "。";
     }
   }
 
@@ -3996,8 +4179,8 @@
     var button = document.createElement("button");
     button.id = "hermes-mobile-community-entry";
     button.type = "button";
-    button.setAttribute("aria-label", "交流群");
-    button.innerHTML = "<span class=\"hermes-mobile-community-icon\">#</span><span>交流群</span>";
+    button.setAttribute("aria-label", "مجموعة النقاش");
+    button.innerHTML = "<span class=\"hermes-mobile-community-icon\">#</span><span>مجموعة النقاش</span>";
     button.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -4032,7 +4215,7 @@
       return Promise.resolve(url || "");
     },
     getBootProgress: function () {
-      return Promise.resolve(bootProgress("Starting Hermes backend", 12, true));
+      return Promise.resolve(bootProgress("جارٍ تشغيل خدمة Hermes المحلية...", 12, true));
     },
     getBootstrapState: function () {
       return Promise.resolve({
@@ -4159,12 +4342,20 @@
         if (result.ok) {
           return Promise.resolve(result.dataUrl || "");
         }
-        return Promise.reject(new Error(result.error || "Could not read file."));
+        return Promise.reject(new Error(result.error || "تعذّرت قراءة الملف."));
       }
-      return Promise.reject(new Error("Android 版暂不支持直接读取该文件。"));
+      return Promise.reject(new Error("لا يدعم إصدار Android قراءة هذا الملف مباشرةً حاليًا."));
+    },
+    readImagePreviewDataUrl: function (path) {
+      if (window.HermesAndroid && typeof window.HermesAndroid.readImagePreviewDataUrl === "function") {
+        var result = JSON.parse(window.HermesAndroid.readImagePreviewDataUrl(path || ""));
+        if (result.ok) return Promise.resolve(result.dataUrl || "");
+        return Promise.reject(new Error(result.error || "تعذرت معاينة الصورة."));
+      }
+      return Promise.resolve("");
     },
     readFileText: function () {
-      return Promise.reject(new Error("Android 版暂不支持直接读取该文件。"));
+      return Promise.reject(new Error("لا يدعم إصدار Android قراءة هذا الملف مباشرةً حاليًا."));
     },
     requestMicrophoneAccess: function () {
       if (window.HermesAndroid && typeof window.HermesAndroid.requestMicrophoneAccess === "function") {
@@ -4195,13 +4386,13 @@
       return Promise.resolve({ cwd: cwd || "", sanitized: false });
     },
     saveClipboardImage: function () {
-      return Promise.reject(new Error("Android 版暂不支持读取剪贴板图片。"));
+      return Promise.reject(new Error("لا يدعم إصدار Android قراءة الصور من الحافظة حاليًا."));
     },
     saveConnectionConfig: function () {
       return Promise.resolve({ mode: "local", remote: {}, profiles: {} });
     },
     saveImageBuffer: function () {
-      return Promise.reject(new Error("Android 版暂不支持保存图片。"));
+      return Promise.reject(new Error("لا يدعم إصدار Android حفظ الصور حاليًا."));
     },
     saveImageFromUrl: function () {
       return Promise.resolve(false);
@@ -4215,9 +4406,17 @@
           return Promise.resolve(result.paths || []);
         }
         logMobileEvent("bridge-selectPaths-error", { error: result.error || "" });
-        return Promise.reject(new Error(result.error || "No file selected."));
+        return Promise.reject(new Error(result.error || "لم يتم اختيار ملف."));
       }
       return Promise.resolve([]);
+    },
+    capturePhoto: function (timeoutMs) {
+      if (window.HermesAndroid && typeof window.HermesAndroid.capturePhoto === "function") {
+        var result = JSON.parse(window.HermesAndroid.capturePhoto(timeoutMs || 120000));
+        if (result.ok && result.path) return Promise.resolve(result.path);
+        return Promise.reject(new Error(result.error || "تعذر التقاط صورة."));
+      }
+      return Promise.reject(new Error("الكاميرا غير متاحة في هذا الجهاز."));
     },
     setNativeTheme: function () {},
     setPreviewShortcutActive: function () {},
@@ -4229,7 +4428,7 @@
     settings: {
       getDefaultProjectDir: function () {
         return Promise.resolve({
-          defaultLabel: "应用目录",
+          defaultLabel: "مجلد التطبيق",
           dir: null,
           resolvedCwd: ""
         });
@@ -4249,7 +4448,7 @@
     },
     themes: {
       fetchMarketplace: function () {
-        return Promise.reject(new Error("Android 版暂不支持主题市场。"));
+        return Promise.reject(new Error("لا يدعم إصدار Android متجر السمات حاليًا."));
       },
       searchMarketplace: function () {
         return Promise.resolve([]);
@@ -4269,7 +4468,7 @@
         return Promise.resolve(false);
       },
       start: function () {
-        return Promise.reject(new Error("Android 版暂不支持内置终端。"));
+        return Promise.reject(new Error("لا يدعم إصدار Android الطرفية المضمنة حاليًا."));
       },
       write: function () {
         return Promise.resolve(false);

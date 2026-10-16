@@ -23,9 +23,11 @@ Language resolution order:
     1. Explicit ``lang=`` argument passed to :func:`t`
     2. ``HERMES_LANGUAGE`` environment variable (for tests / quick override)
     3. ``display.language`` from config.yaml
-    4. ``"en"`` (baseline)
+    4. ``"ar"`` (Arabic baseline for Hermes Arabic)
 
-Supported languages: en, zh, ja, de, es, fr, tr, uk.  Unknown values fall back to en.
+Supported languages include ar (the Hermes Arabic default), en, zh, zh-hant,
+ja, de, es, fr, tr, uk, af, ko, it, ga, pt, ru, and hu. Unknown values use
+the configured default language.
 """
 
 from __future__ import annotations
@@ -41,15 +43,16 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 SUPPORTED_LANGUAGES: tuple[str, ...] = (
-    "en", "zh", "zh-hant", "ja", "de", "es", "fr", "tr", "uk",
+    "en", "ar", "zh", "zh-hant", "ja", "de", "es", "fr", "tr", "uk",
     "af", "ko", "it", "ga", "pt", "ru", "hu",
 )
-DEFAULT_LANGUAGE = "en"
+DEFAULT_LANGUAGE = "ar"
 
 # Accept a few natural aliases so users who type "chinese" / "zh-CN" / "jp"
 # get the right catalog instead of silently falling back to English.
 _LANGUAGE_ALIASES: dict[str, str] = {
     "english": "en", "en-us": "en", "en-gb": "en",
+    "arabic": "ar", "العربية": "ar",
     # Simplified Chinese — explicit codes route here; bare "chinese" / "mandarin"
     # also default to Simplified since that's the larger user base.
     "chinese": "zh", "mandarin": "zh", "zh-cn": "zh", "zh-hans": "zh", "zh-sg": "zh",
@@ -264,15 +267,15 @@ def t(key: str, lang: str | None = None, **format_kwargs: Any) -> str:
 
     Returns
     -------
-    The translated string, or the English fallback if the key is missing in
-    the target language, or the bare key if English is also missing.
+    The translated string, or the default-language fallback if the key is
+    missing in the target language, or the bare key if the default is missing.
     """
     target = _normalize_lang(lang) if lang else get_language()
     catalog = _load_catalog(target)
     value = catalog.get(key)
 
     if value is None and target != DEFAULT_LANGUAGE:
-        # Fall through to English rather than showing a key path to the user.
+        # Fall through to the Arabic default rather than showing a key path.
         value = _load_catalog(DEFAULT_LANGUAGE).get(key)
 
     if value is None:
