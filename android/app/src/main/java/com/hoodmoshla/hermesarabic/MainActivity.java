@@ -31,6 +31,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.util.Base64;
@@ -73,6 +74,7 @@ public class MainActivity extends BridgeActivity {
     private static final int REQ_RECORD_AUDIO = 9002;
     private static final int REQ_SPEECH_TEXT = 9003;
     private static MainActivity activeInstance;
+    private static final int REQ_NOTIFICATIONS = 9004;
     private int safeTopPx = 0;
     private int safeRightPx = 0;
     private int safeBottomPx = 0;
@@ -96,10 +98,15 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         activeInstance = this;
         androidAdbManager = new AndroidAdbManager(this);
+        LocalModelManager.initialize(this);
+        GitHubConnector.initialize(this, this);
         configureWebViewForPhoneScreen();
         installHermesWebViewClient();
         installBackNavigationHandler();
-        warmEmbeddedHermesRuntime();
+        HermesForegroundService.start(this);
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIFICATIONS);
+        }
     }
 
     public static boolean speakTextFromPython(String text, String language, int timeoutMs) {
@@ -140,16 +147,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     private String callEmbeddedBackend(String method, Object... args) {
-        try {
-            prepareHermesNodeRuntime();
-            Python python = ensureEmbeddedPython();
-            PyObject module = python.getModule("hermes_mobile_backend");
-            PyObject value = module.callAttr(method, args);
-            return value == null ? "{}" : value.toString();
-        } catch (Exception e) {
-            Log.w(TAG, "Embedded Hermes call failed: " + method, e);
-            return embeddedErrorJson(e);
-        }
+        return EmbeddedHermesRuntime.call(this, method, args);
     }
 
     private String embeddedErrorJson(Exception e) {
@@ -258,6 +256,7 @@ public class MainActivity extends BridgeActivity {
         if (activeInstance == this) {
             activeInstance = null;
         }
+        GitHubConnector.setForegroundActivity(null);
         destroyActiveSpeechRecognizer();
         if (textToSpeech != null) {
             try {
@@ -270,6 +269,18 @@ public class MainActivity extends BridgeActivity {
             textToSpeechReady = false;
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        GitHubConnector.setForegroundActivity(this);
+    }
+
+    @Override
+    public void onStop() {
+        GitHubConnector.setForegroundActivity(null);
+        super.onStop();
     }
 
     @Override
@@ -329,7 +340,12 @@ public class MainActivity extends BridgeActivity {
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        settings.setAllowFileAccess(false);
+        settings.setAllowContentAccess(false);
+        settings.setJavaScriptCanOpenWindowsAutomatically(false);
+        settings.setSupportMultipleWindows(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) settings.setSafeBrowsingEnabled(true);
         webView.addJavascriptInterface(new HermesAndroidBridge(), "HermesAndroid");
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -384,12 +400,26 @@ public class MainActivity extends BridgeActivity {
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri url = request.getUrl();
                 String scheme = url == null ? "" : url.getScheme();
-                if (scheme != null && !scheme.isEmpty()
-                    && !"http".equalsIgnoreCase(scheme)
-                    && !"https".equalsIgnoreCase(scheme)) {
-                    return openExternalUri(url);
+                if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+                    if (isTrustedWebOrigin(url)) return false;
+                    return "https".equalsIgnoreCase(scheme) ? openExternalUri(url) : true;
                 }
-                return super.shouldOverrideUrlLoading(view, request);
+                if (scheme == null || scheme.isEmpty()) return true;
+                return openExternalUri(url);
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                Uri url = request == null ? null : request.getUrl();
+                if (isTrustedWebOrigin(url)) return super.shouldInterceptRequest(view, request);
+                if (url != null && "data".equalsIgnoreCase(url.getScheme())) {
+                    String data = url.getSchemeSpecificPart();
+                    if (data != null && !data.toLowerCase(Locale.ROOT).startsWith("text/html")
+                            && !data.toLowerCase(Locale.ROOT).startsWith("image/svg+xml")) {
+                        return super.shouldInterceptRequest(view, request);
+                    }
+                }
+                return new WebResourceResponse("text/plain", "UTF-8", new java.io.ByteArrayInputStream(new byte[0]));
             }
 
             @Override
@@ -401,10 +431,22 @@ public class MainActivity extends BridgeActivity {
         });
     }
 
+    private boolean isTrustedWebOrigin(Uri uri) {
+        if (uri == null) return false;
+        String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase(Locale.ROOT);
+        String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase(Locale.ROOT);
+        int port = uri.getPort();
+        if ("https".equals(scheme) && "localhost".equals(host) && (port == -1 || port == 443)) return true;
+        boolean loopback = "127.0.0.1".equals(host) || "localhost".equals(host);
+        return "http".equals(scheme) && loopback && (port == EMBEDDED_AGENT_PORT || port == LocalModelManager.SERVER_PORT);
+    }
+
     private boolean openExternalUri(Uri uri) {
         if (uri == null) {
             return false;
         }
+        String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase(Locale.ROOT);
+        if (!("https".equals(scheme) || "mailto".equals(scheme) || "tel".equals(scheme))) return true;
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -851,7 +893,99 @@ public class MainActivity extends BridgeActivity {
 
         @JavascriptInterface
         public String startEmbeddedAgent() {
+            HermesForegroundService.start(MainActivity.this);
             return callEmbeddedBackend("start", getFilesDir().getAbsolutePath(), EMBEDDED_AGENT_PORT);
+        }
+
+        @JavascriptInterface
+        public String getLocalModelStatus() {
+            return LocalModelManager.statusJson();
+        }
+
+        @JavascriptInterface
+        public String downloadLocalModel(String modelId) {
+            return LocalModelManager.download(modelId);
+        }
+
+        @JavascriptInterface
+        public String cancelLocalModelDownload() {
+            return LocalModelManager.cancelDownload();
+        }
+
+        @JavascriptInterface
+        public String startLocalModel(String modelId) {
+            HermesForegroundService.start(MainActivity.this);
+            return LocalModelManager.start(modelId);
+        }
+
+        @JavascriptInterface
+        public String stopLocalModel() {
+            return LocalModelManager.stop();
+        }
+
+        @JavascriptInterface
+        public String deleteLocalModel(String modelId) {
+            return LocalModelManager.deleteModel(modelId);
+        }
+
+        @JavascriptInterface
+        public String getGitHubStatus() { return GitHubConnector.statusJson(); }
+
+        @JavascriptInterface
+        public String connectGitHub(String personalAccessToken) { return GitHubConnector.connect(personalAccessToken); }
+
+        @JavascriptInterface
+        public String disconnectGitHub() { return GitHubConnector.disconnect(); }
+
+        @JavascriptInterface
+        public String listGitHubRepositories() { return GitHubConnector.listRepositories(); }
+
+        @JavascriptInterface
+        public String listGitHubTree(String repository, String reference) { return GitHubConnector.listTree(repository, reference); }
+
+        @JavascriptInterface
+        public String readGitHubFile(String repository, String path, String reference) { return GitHubConnector.readFile(repository, path, reference); }
+
+        @JavascriptInterface
+        public String proposeGitHubChanges(String repository, String branch, String changesJson, String commitMessage) {
+            return GitHubConnector.createUploadProposal(repository, branch, changesJson, commitMessage);
+        }
+
+        @JavascriptInterface
+        public String listPendingGitHubProposals() { return GitHubConnector.listPendingProposals(); }
+
+        @JavascriptInterface
+        public String approveGitHubProposal(String proposalId) { return GitHubConnector.approveProposal(proposalId); }
+
+        @JavascriptInterface
+        public String discardGitHubProposal(String proposalId) { return GitHubConnector.discardProposal(proposalId); }
+
+        @JavascriptInterface
+        public String listGitHubWorkflowRuns(String repository, String branch) {
+            return GitHubConnector.listWorkflowRuns(repository, branch);
+        }
+
+        @JavascriptInterface
+        public String listGitHubWorkflows(String repository) {
+            return GitHubConnector.listWorkflows(repository);
+        }
+
+        @JavascriptInterface
+        public String proposeGitHubWorkflowRun(String repository, String workflowId, String branch, String inputsJson) {
+            return GitHubConnector.createWorkflowRunProposal(repository, workflowId, branch, inputsJson);
+        }
+
+        @JavascriptInterface
+        public boolean stopHermesBackgroundRuntime() {
+            Intent intent = new Intent(MainActivity.this, HermesForegroundService.class)
+                    .setAction(HermesForegroundService.ACTION_STOP);
+            try {
+                startService(intent);
+                return true;
+            } catch (Exception error) {
+                Log.w(TAG, "Could not stop the foreground runtime");
+                return false;
+            }
         }
 
         @JavascriptInterface
@@ -977,6 +1111,12 @@ public class MainActivity extends BridgeActivity {
                 String baseUrl = request.optString("baseUrl", "").trim();
                 String apiKey = request.optString("apiKey", "").trim();
                 String model = request.optString("model", "").trim();
+                boolean nativeLocalModel = ("http://127.0.0.1:" + LocalModelManager.SERVER_PORT + "/v1").equals(baseUrl);
+                if (nativeLocalModel) {
+                    JSONObject local = new JSONObject(LocalModelManager.activeProviderConfigJson());
+                    apiKey = local.optString("api_key", "");
+                    model = local.optString("model_id", "");
+                }
                 JSONArray messages = request.optJSONArray("messages");
                 if (baseUrl.isEmpty()) {
                     throw new IllegalArgumentException("يرجى إدخال عنوان API");
@@ -1058,12 +1198,14 @@ public class MainActivity extends BridgeActivity {
             try {
                 JSONObject stored = readMobileChatStoredConfig();
                 String apiKey = getStoredMobileChatApiKey(stored);
-                result.put("apiKey", apiKey);
+                result.put("apiKey", "");
+                result.put("hasApiKey", !apiKey.isEmpty());
                 result.put("baseUrl", stored.optString("baseUrl", ""));
                 result.put("model", stored.optString("model", ""));
             } catch (Exception e) {
                 try {
                     result.put("apiKey", "");
+                    result.put("hasApiKey", false);
                     result.put("baseUrl", "");
                     result.put("model", "");
                     result.put("error", "تعذّر فتح الإعدادات المشفّرة");
@@ -1150,15 +1292,16 @@ public class MainActivity extends BridgeActivity {
             try {
                 JSONObject parsed = new JSONObject(configJson == null ? "{}" : configJson);
                 JSONObject stored = readMobileChatStoredConfig();
-                if (!parsed.has("apiKey")) {
-                    getStoredMobileChatApiKey(stored);
-                } else {
+                if (parsed.optBoolean("clearApiKey", false)) {
+                    stored.remove("apiKey");
+                    stored.remove("apiKeyEncrypted");
+                } else if (parsed.has("apiKey") && !parsed.optString("apiKey", "").trim().isEmpty()) {
                     String apiKey = parsed.optString("apiKey", "").trim();
                     stored.remove("apiKey");
                     stored.remove("apiKeyEncrypted");
-                    if (!apiKey.isEmpty()) {
-                        stored.put("apiKeyEncrypted", encryptMobileChatApiKey(apiKey));
-                    }
+                    stored.put("apiKeyEncrypted", encryptMobileChatApiKey(apiKey));
+                } else {
+                    getStoredMobileChatApiKey(stored);
                 }
                 if (parsed.has("baseUrl")) stored.put("baseUrl", parsed.optString("baseUrl", ""));
                 if (parsed.has("model")) stored.put("model", parsed.optString("model", ""));

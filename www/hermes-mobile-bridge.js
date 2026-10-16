@@ -54,6 +54,8 @@
   ];
   var SETTINGS_TOOLS = [
     ["النماذج والاتصالات", "إعداد نماذج Hermes وعنوان الخدمة ومفتاح API", "models", "الإعدادات الأساسية"],
+    ["النماذج المحلية", "تنزيل GGUF والتحقق منه وتشغيل llama.cpp بلا API", "local-models", "الإعدادات الأساسية"],
+    ["GitHub", "قراءة المستودعات ومراجعة مقترحات الوكيل قبل رفعها", "github", "قدرات الوكيل"],
     ["اللغة", "تغيير اللغة والإعدادات الإقليمية", "language", "الإعدادات الأساسية"],
     ["المظهر", "الوضع الداكن والخط وحجم العرض", "appearance", "الإعدادات الأساسية"],
     ["الاستخدام", "استهلاك الرموز وإحصاءات الاستخدام", "usage", "الإعدادات الأساسية"],
@@ -84,7 +86,9 @@
     mcp: ["MCP", "استعراض خوادم MCP وتثبيتها وتبديلها."],
     sandboxes: ["بيئات معزولة", "بيئات محلية أو Docker أو SSH أو Singularity أو Modal."],
     subagents: ["الوكلاء الفرعيون", "وكلاء فرعيون معزولون وتنفيذ متوازٍ."],
-    "command-palette": ["لوحة الأوامر", "الإجراءات العامة والأوامر المختصرة."]
+    "command-palette": ["لوحة الأوامر", "الإجراءات العامة والأوامر المختصرة."],
+    "local-models": ["النماذج المحلية", "تنزيل نموذج GGUF موثق وتشغيل استدلال llama.cpp داخل الجهاز."],
+    github: ["GitHub", "ربط مستودعات GitHub وقراءة الملفات ومراجعة التغييرات ونتائج الاختبار."]
   };
   var SLASH_COMMANDS = {
     "/new": "new-session",
@@ -1067,6 +1071,8 @@
     var mobileRpcSessionId = sessions[0] && sessions[0].backendSessionId || "";
     var mobileRpcListenerSocket = null;
     var androidAdbState = { loading: false, error: "", data: null, message: "" };
+    var localModelState = { data: null, error: "", polling: false };
+    var githubState = { status: null, repositories: [], selectedRepo: "", branch: "", files: [], fileContents: {}, workflows: [], proposals: [], runs: [], error: "", loading: false };
     var featureData = {
       resources: { loading: false, error: "", data: null, path: "", rootPath: "" },
       automation: { loading: false, error: "", data: null },
@@ -2721,6 +2727,74 @@
       ].join("");
     }
 
+    function renderLocalModelsPage() {
+      var result = callHermesAndroidJson("getLocalModelStatus");
+      if (result && result.ok) localModelState.data = result;
+      else if (result && result.error) localModelState.error = result.error;
+      var data = localModelState.data || {};
+      var pct = Number(data.progress || 0);
+      var downloaded = Number(data.downloaded_bytes || 0);
+      var total = Number(data.size_bytes || 0);
+      var downloadState = data.download_state || "not_downloaded";
+      var runtime = data.runtime_state || "idle";
+      var active = Boolean(data.running);
+      var message = localModelState.error || data.runtime_error || "";
+      var downloadLabel = downloadState === "downloaded" ? "تم تنزيل النموذج والتحقق من SHA-256" : downloadState === "downloading" ? "التنزيل جارٍ" : downloadState === "interrupted" ? "تنزيل غير مكتمل — يمكن استئنافه" : "النموذج غير موجود على الجهاز";
+      var runtimeLabel = runtime === "running" ? "يعمل محليًا" : runtime === "loading" ? "يجري تحميل النموذج إلى الذاكرة" : runtime === "error" ? "تعذر تشغيل المحرك" : "متوقف";
+      return [
+        "<div class=\"hermes-mobile-section\">",
+        renderFeatureHeader("local-models", "النماذج المحلية", "نزّل نموذج GGUF إلى مساحة التطبيق الخاصة وشغّله على الجهاز بمحرك llama.cpp، دون إرسال المحادثات إلى API خارجي."),
+        "<div class=\"hermes-mobile-panel\"><h2>Qwen2.5 0.5B Instruct · Q4_K_M</h2><p>الحجم: 397,808,192 بايت (نحو 379 MiB) · الترخيص: Apache-2.0 · المعمارية: ARM64. لا تُضمّن أوزان النموذج داخل APK.</p><p>" + escapeHtml(downloadLabel) + " · " + escapeHtml(formatBytes(downloaded)) + (total ? " / " + escapeHtml(formatBytes(total)) : "") + "</p><div style=\"height:8px;background:#e2e8f0;border-radius:9px;overflow:hidden\"><div style=\"height:100%;width:" + Math.max(0, Math.min(100, pct)) + "% ;background:#2563eb\"></div></div><p>حالة المحرك: " + escapeHtml(runtimeLabel) + (data.endpoint ? " · " + escapeHtml(data.endpoint) : "") + "</p>" + (message ? "<p role=\"alert\">" + escapeHtml(message) + "</p>" : "") + "<div class=\"hermes-mobile-form-actions\">" + (downloadState === "downloading" ? "<button class=\"secondary\" type=\"button\" data-action=\"local-model-cancel\">إيقاف التنزيل</button>" : "<button type=\"button\" data-action=\"local-model-download\">" + (downloadState === "downloaded" ? "إعادة تنزيل النموذج" : "تنزيل / استئناف") + "</button>") + (downloadState === "downloaded" && !active ? "<button type=\"button\" data-action=\"local-model-start\">تشغيل النموذج</button>" : "") + (active || runtime === "loading" ? "<button class=\"secondary\" type=\"button\" data-action=\"local-model-stop\">إيقاف المحرك</button>" : "") + (downloadState !== "not_downloaded" && !active && runtime !== "loading" ? "<button class=\"secondary\" type=\"button\" data-action=\"local-model-delete\">حذف النموذج</button>" : "") + "<button class=\"secondary\" type=\"button\" data-action=\"local-model-refresh\">تحديث الحالة</button></div></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>التحقق والخصوصية</h2><p>يُثبت التنزيل على نسخة مصدر محددة وبصمة SHA-256. لا يبدأ Hermes استخدام هذا المزود إلا بعد تشغيل المحرك؛ عند إيقافه تُستعاد إعدادات المزود السابقة. يلزم نحو 650 MiB من الذاكرة الحرة للتشغيل؛ وقد يعتمد الأداء على الجهاز.</p></div>",
+        "</div>"
+      ].join("");
+    }
+
+    function renderGitHubPage() {
+      if (!githubState.status) githubState.status = callHermesAndroidJson("getGitHubStatus");
+      var connected = Boolean(githubState.status && githubState.status.connected);
+      var selected = githubState.repositories.filter(function (repo) { return repo.full_name === githubState.selectedRepo; })[0];
+      var repoOptions = githubState.repositories.map(function (repo) {
+        return "<option value=\"" + escapeHtml(repo.full_name) + "\"" + (repo.full_name === githubState.selectedRepo ? " selected" : "") + ">" + escapeHtml(repo.full_name + (repo.private ? " · خاص" : "")) + "</option>";
+      }).join("");
+      var fileRows = githubState.files.slice(0, 250).map(function (file) {
+        return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(file.path) + "</strong><span>" + escapeHtml(formatBytes(file.size || 0)) + " · " + escapeHtml(file.mode || "100644") + "</span></div><div class=\"hermes-mobile-row-actions\"><button class=\"secondary\" type=\"button\" data-action=\"github-read-file\" data-path=\"" + escapeHtml(file.path) + "\">قراءة</button></div></div>";
+      }).join("");
+      var fileContent = Object.keys(githubState.fileContents).map(function (path) {
+        return "<details open><summary>" + escapeHtml(path) + "</summary><pre style=\"white-space:pre-wrap;overflow:auto;max-height:45vh\">" + escapeHtml(githubState.fileContents[path]) + "</pre></details>";
+      }).join("");
+      var proposalRows = githubState.proposals.map(function (proposal) {
+        var changes = (proposal.changes || []).map(function (change) {
+          return "<details><summary>" + escapeHtml((change.delete ? "حذف · " : "تغيير · ") + change.path) + "</summary><pre style=\"white-space:pre-wrap;overflow:auto;max-height:40vh\">" + escapeHtml(change.delete ? "سيُحذف هذا الملف." : change.content || "") + "</pre></details>";
+        }).join("");
+        var branchDetail = proposal.create_branch ? "فرع جديد من " + proposal.source_branch + " → " + proposal.branch : "الفرع " + proposal.branch;
+        var workflowProposal = proposal.kind === "workflow_dispatch";
+        var proposalDetail = workflowProposal ? (proposal.workflow_name + " · " + proposal.preview) : (branchDetail + " · " + (proposal.file_count || 0) + " ملف · " + proposal.commit_message);
+        var approveLabel = workflowProposal ? "مراجعة ثم تشغيل الاختبارات" : "مراجعة ثم رفع";
+        var inputPreview = workflowProposal && proposal.inputs ? "<pre>" + escapeHtml(JSON.stringify(proposal.inputs, null, 2)) + "</pre>" : "";
+        return "<div class=\"hermes-mobile-panel\"><h2>" + escapeHtml(proposal.repository) + "</h2><p>" + escapeHtml(proposalDetail) + "</p>" + inputPreview + "<div>" + changes + "</div><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"github-approve\" data-id=\"" + escapeHtml(proposal.id) + "\">" + approveLabel + "</button><button class=\"secondary\" type=\"button\" data-action=\"github-discard\" data-id=\"" + escapeHtml(proposal.id) + "\">رفض المقترح</button></div></div>";
+      }).join("");
+      var runRows = githubState.runs.map(function (run) {
+        return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(run.name || "GitHub Actions") + "</strong><span>" + escapeHtml((run.status || "") + (run.conclusion ? " · " + run.conclusion : "") + " · " + (run.head_branch || "")) + "</span></div></div>";
+      }).join("");
+      var workflowRows = githubState.workflows.map(function (workflow) {
+        var dispatchButton = workflow.state === "active" ? "<button class=\"secondary\" type=\"button\" data-action=\"github-run-workflow\" data-workflow-id=\"" + escapeHtml(String(workflow.id)) + "\">إعداد طلب اختبار</button>" : "";
+        return "<div class=\"hermes-mobile-row\"><div class=\"hermes-mobile-row-main\"><strong>" + escapeHtml(workflow.name || workflow.path) + "</strong><span>" + escapeHtml(workflow.path + " · " + workflow.state + " · #" + workflow.id) + "</span></div><div class=\"hermes-mobile-row-actions\">" + dispatchButton + "</div></div>";
+      }).join("");
+      return [
+        "<div class=\"hermes-mobile-section\">",
+        renderFeatureHeader("github", "GitHub", "اقرأ مستودعاتك واطلب تغييرات أو تشغيل GitHub Actions. الرفع أو تشغيل الاختبارات يظل اقتراحًا حتى تراجع payload والفرع في نافذة Android الأصلية وتوافق."),
+        "<div class=\"hermes-mobile-panel\"><h2>الحساب</h2><p>" + escapeHtml(connected ? "متصل باسم " + (githubState.status.login || "حساب GitHub") : "غير متصل") + "</p>" + (connected ? "<p>الرمز محفوظ مشفرًا داخل Android Keystore ولا يُرسل إلى JavaScript أو يسجل في السجلات.</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"github-refresh\">تحديث المستودعات</button><button class=\"secondary\" type=\"button\" data-action=\"github-proposals-refresh\">مقترحات الوكيل</button><button class=\"secondary\" type=\"button\" data-action=\"github-disconnect\">فصل الحساب</button></div>" : "<div class=\"hermes-mobile-form\"><label>Fine-grained Personal Access Token<input id=\"hermes-github-token\" type=\"password\" autocomplete=\"new-password\" placeholder=\"يُتحقق منه ثم يُحفظ مشفرًا فقط\"></label><p>أنشئ token محدودًا للمستودعات المطلوبة، مع Contents: read/write وMetadata: read. يلزم Actions: read لقراءة النتائج، وActions: write لطلب تشغيل workflow بموافقتك. لن يرفع الوكيل أو يشغّل workflow بلا موافقتك.</p><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"github-connect\">التحقق والربط</button></div></div>") + "</div>",
+        (githubState.error ? "<div class=\"hermes-mobile-panel\" role=\"alert\"><p>" + escapeHtml(githubState.error) + "</p></div>" : ""),
+        connected ? "<div class=\"hermes-mobile-panel\"><h2>المستودع</h2><div class=\"hermes-mobile-form\"><label>المستودعات<select id=\"hermes-github-repo\" data-action=\"github-repo-select\"><option value=\"\">اختر مستودعًا</option>" + repoOptions + "</select></label><label>الفرع / المصدر<input id=\"hermes-github-branch\" value=\"" + escapeHtml(githubState.branch || selected && selected.default_branch || "main") + "\" autocomplete=\"off\"></label><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"github-files\">استعراض الملفات</button><button class=\"secondary\" type=\"button\" data-action=\"github-runs\">نتائج الاختبارات</button></div></div><p>عند اختيار الفرع الافتراضي، يجهّز الوكيل فرع مراجعة منفصلًا؛ لا تعديل مباشر للفرع الافتراضي.</p></div>" : "",
+        connected && githubState.files.length ? "<div class=\"hermes-mobile-panel\"><h2>الملفات (" + githubState.files.length + ")</h2><div class=\"hermes-mobile-list\">" + fileRows + "</div>" + fileContent + "</div>" : "",
+        connected ? "<div class=\"hermes-mobile-panel\"><h2>GitHub Actions / الاختبارات</h2><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"github-workflows\">عرض workflows</button><button class=\"secondary\" type=\"button\" data-action=\"github-runs\">تحديث النتائج</button></div>" + (workflowRows ? "<div class=\"hermes-mobile-list\">" + workflowRows + "</div>" : "<p>اعرض workflows المتاحة لطلب تشغيل اختبار.</p>") + (runRows || "<p>لا توجد نتائج محمّلة بعد؛ اختر مستودعًا وفرعًا ثم حدّث النتائج.</p>") + "</div>" : "",
+        connected ? "<h2>مقترحات التغييرات (" + githubState.proposals.length + ")</h2>" + (proposalRows || "<div class=\"hermes-mobile-panel\"><p>لا توجد مقترحات معلقة.</p></div>") : "",
+        "<div class=\"hermes-mobile-panel\"><p>حدود هذا الإصدار: قراءة ملفات نصية حتى 2 MiB، ومقترح حتى 30 ملفًا و5 MiB. نتيجة Actions تُقرأ بعد إتاحتها من GitHub؛ لا يُدّعى نجاح اختبار قبل ظهور نتيجته.</p></div>",
+        "</div>"
+      ].join("");
+    }
+
     function renderFeaturePage(viewName) {
       var info = FEATURE_INFO[viewName] || ["功能入口", "该能力会继续接入本机 Hermes。"];
       if (viewName === "resources") {
@@ -2761,6 +2835,12 @@
       }
       if (viewName === "phone-control") {
         return renderPhoneControlPage();
+      }
+      if (viewName === "local-models") {
+        return renderLocalModelsPage();
+      }
+      if (viewName === "github") {
+        return renderGitHubPage();
       }
       return [
         "<div class=\"hermes-mobile-section\">",
@@ -3039,6 +3119,174 @@
         } catch (error) {
           appendAssistant("接入测试失败: " + String(error && error.message || error));
         }
+      } else if (action === "local-model-refresh" || action === "local-model-download" || action === "local-model-start" || action === "local-model-stop" || action === "local-model-delete" || action === "local-model-cancel") {
+        localModelState.error = "";
+        target.disabled = true;
+        try {
+          if (action === "local-model-download") {
+            callHermesAndroidJson("downloadLocalModel", ["qwen2.5-0.5b-instruct-q4_k_m"]);
+            localModelState.polling = true;
+            var localPollStarted = Date.now();
+            var localPoll = window.setInterval(function () {
+              localModelState.data = callHermesAndroidJson("getLocalModelStatus");
+              if (currentView === "local-models") renderView();
+              var localDone = !localModelState.data || localModelState.data.download_state !== "downloading";
+              if (localDone || Date.now() - localPollStarted > 45 * 60 * 1000) {
+                window.clearInterval(localPoll);
+                localModelState.polling = false;
+              }
+            }, 1200);
+          } else if (action === "local-model-start") {
+            callHermesAndroidJson("startLocalModel", ["qwen2.5-0.5b-instruct-q4_k_m"]);
+            localModelState.polling = true;
+            var localStartAt = Date.now();
+            var modelPoll = window.setInterval(function () {
+              localModelState.data = callHermesAndroidJson("getLocalModelStatus");
+              if (currentView === "local-models") renderView();
+              if (!localModelState.data || localModelState.data.runtime_state !== "loading" || Date.now() - localStartAt > 5 * 60 * 1000) {
+                window.clearInterval(modelPoll);
+                localModelState.polling = false;
+              }
+            }, 1200);
+          } else if (action === "local-model-stop") {
+            localModelState.data = callHermesAndroidJson("stopLocalModel");
+          } else if (action === "local-model-delete") {
+            localModelState.data = callHermesAndroidJson("deleteLocalModel", ["qwen2.5-0.5b-instruct-q4_k_m"]);
+          } else if (action === "local-model-cancel") {
+            localModelState.data = callHermesAndroidJson("cancelLocalModelDownload");
+          } else {
+            localModelState.data = callHermesAndroidJson("getLocalModelStatus");
+          }
+          await new Promise(function (resolve) { window.setTimeout(resolve, 80); });
+          localModelState.data = callHermesAndroidJson("getLocalModelStatus");
+        } catch (error) {
+          localModelState.error = String(error && error.message || error);
+        }
+        renderView();
+      } else if (action === "github-connect") {
+        var tokenInput = document.getElementById("hermes-github-token");
+        var githubToken = String(tokenInput && tokenInput.value || "").trim();
+        if (!githubToken) {
+          githubState.error = "أدخل رمز Fine-grained Personal Access Token أولًا.";
+          renderView();
+          return;
+        }
+        if (tokenInput) tokenInput.value = "";
+        target.disabled = true;
+        githubState.loading = true;
+        githubState.error = "";
+        renderView();
+        await new Promise(function (resolve) { window.setTimeout(resolve, 50); });
+        githubState.status = callHermesAndroidJson("connectGitHub", [githubToken]);
+        githubToken = "";
+        githubState.loading = false;
+        if (!githubState.status || !githubState.status.ok) githubState.error = githubState.status && githubState.status.error || "تعذر ربط GitHub.";
+        else {
+          var afterConnect = callHermesAndroidJson("listGitHubRepositories");
+          githubState.repositories = afterConnect && afterConnect.repositories || [];
+          githubState.selectedRepo = githubState.repositories[0] && githubState.repositories[0].full_name || "";
+          var selectedAfterConnect = githubState.repositories[0];
+          githubState.branch = selectedAfterConnect && selectedAfterConnect.default_branch || "main";
+        }
+        renderView();
+      } else if (action === "github-disconnect") {
+        githubState.status = callHermesAndroidJson("disconnectGitHub");
+        githubState.repositories = [];
+        githubState.selectedRepo = "";
+        githubState.files = [];
+        githubState.fileContents = {};
+        githubState.workflows = [];
+        githubState.proposals = [];
+        githubState.runs = [];
+        githubState.error = "";
+        renderView();
+      } else if (action === "github-refresh") {
+        target.disabled = true;
+        githubState.loading = true;
+        githubState.error = "";
+        renderView();
+        await new Promise(function (resolve) { window.setTimeout(resolve, 50); });
+        var reposResult = callHermesAndroidJson("listGitHubRepositories");
+        githubState.repositories = reposResult && reposResult.repositories || [];
+        if (!reposResult || !reposResult.ok) githubState.error = reposResult && reposResult.error || "تعذر تحميل المستودعات.";
+        if (!githubState.repositories.some(function (repo) { return repo.full_name === githubState.selectedRepo; })) {
+          githubState.selectedRepo = githubState.repositories[0] && githubState.repositories[0].full_name || "";
+        }
+        var currentRepoInfo = githubState.repositories.filter(function (repo) { return repo.full_name === githubState.selectedRepo; })[0];
+        if (!githubState.branch || currentRepoInfo && !githubState.repositories.some(function (repo) { return repo.full_name === githubState.selectedRepo && repo.default_branch === githubState.branch; })) {
+          githubState.branch = currentRepoInfo && currentRepoInfo.default_branch || "main";
+        }
+        githubState.status = callHermesAndroidJson("getGitHubStatus");
+        githubState.loading = false;
+        renderView();
+      } else if (action === "github-files") {
+        githubState.selectedRepo = String((document.getElementById("hermes-github-repo") || {}).value || githubState.selectedRepo);
+        githubState.branch = String((document.getElementById("hermes-github-branch") || {}).value || githubState.branch).trim();
+        githubState.loading = true;
+        githubState.error = "";
+        renderView();
+        await new Promise(function (resolve) { window.setTimeout(resolve, 50); });
+        var treeResult = callHermesAndroidJson("listGitHubTree", [githubState.selectedRepo, githubState.branch]);
+        githubState.files = treeResult && treeResult.files || [];
+        githubState.loading = false;
+        if (!treeResult || !treeResult.ok) githubState.error = treeResult && treeResult.error || "تعذر قراءة شجرة المستودع.";
+        renderView();
+      } else if (action === "github-read-file") {
+        githubState.selectedRepo = String((document.getElementById("hermes-github-repo") || {}).value || githubState.selectedRepo);
+        githubState.branch = String((document.getElementById("hermes-github-branch") || {}).value || githubState.branch).trim();
+        var fileResult = callHermesAndroidJson("readGitHubFile", [githubState.selectedRepo, target.getAttribute("data-path") || "", githubState.branch]);
+        if (!fileResult || !fileResult.ok) githubState.error = fileResult && fileResult.error || "تعذرت قراءة الملف.";
+        else githubState.fileContents[fileResult.path] = fileResult.content;
+        renderView();
+      } else if (action === "github-proposals-refresh") {
+        var proposalsResult = callHermesAndroidJson("listPendingGitHubProposals");
+        githubState.proposals = proposalsResult && proposalsResult.proposals || [];
+        githubState.error = proposalsResult && proposalsResult.ok ? "" : proposalsResult && proposalsResult.error || "تعذر تحميل المقترحات.";
+        renderView();
+      } else if (action === "github-approve") {
+        target.disabled = true;
+        await new Promise(function (resolve) { window.setTimeout(resolve, 50); });
+        var approvalResult = callHermesAndroidJson("approveGitHubProposal", [target.getAttribute("data-id") || ""]);
+        if (!approvalResult || !approvalResult.ok) githubState.error = approvalResult && approvalResult.error || "لم يكتمل الرفع.";
+        else githubState.error = "نجح الإجراء: " + (approvalResult.html_url || approvalResult.message || "تم التنفيذ");
+        var remainingProposals = callHermesAndroidJson("listPendingGitHubProposals");
+        githubState.proposals = remainingProposals && remainingProposals.proposals || [];
+        renderView();
+      } else if (action === "github-discard") {
+        var discardResult = callHermesAndroidJson("discardGitHubProposal", [target.getAttribute("data-id") || ""]);
+        githubState.error = discardResult && discardResult.ok ? "تم رفض المقترح وحذفه محليًا؛ لم يُرفع أي تغيير." : discardResult && discardResult.error || "تعذر حذف المقترح.";
+        var afterDiscard = callHermesAndroidJson("listPendingGitHubProposals");
+        githubState.proposals = afterDiscard && afterDiscard.proposals || [];
+        renderView();
+      } else if (action === "github-runs") {
+        githubState.selectedRepo = String((document.getElementById("hermes-github-repo") || {}).value || githubState.selectedRepo);
+        githubState.branch = String((document.getElementById("hermes-github-branch") || {}).value || githubState.branch).trim();
+        var runsResult = callHermesAndroidJson("listGitHubWorkflowRuns", [githubState.selectedRepo, githubState.branch]);
+        githubState.runs = runsResult && runsResult.runs || [];
+        githubState.error = runsResult && runsResult.ok ? "" : runsResult && runsResult.error || "تعذر قراءة نتائج Actions.";
+        renderView();
+      } else if (action === "github-workflows") {
+        githubState.selectedRepo = String((document.getElementById("hermes-github-repo") || {}).value || githubState.selectedRepo);
+        if (!githubState.selectedRepo) {
+          githubState.error = "اختر مستودع GitHub أولًا.";
+        } else {
+          var workflowsResult = callHermesAndroidJson("listGitHubWorkflows", [githubState.selectedRepo]);
+          githubState.workflows = workflowsResult && workflowsResult.workflows || [];
+          githubState.error = workflowsResult && workflowsResult.ok ? "" : workflowsResult && workflowsResult.error || "تعذر قراءة workflows.";
+        }
+        renderView();
+      } else if (action === "github-run-workflow") {
+        githubState.selectedRepo = String((document.getElementById("hermes-github-repo") || {}).value || githubState.selectedRepo);
+        githubState.branch = String((document.getElementById("hermes-github-branch") || {}).value || githubState.branch).trim();
+        var workflowProposalResult = callHermesAndroidJson("proposeGitHubWorkflowRun", [githubState.selectedRepo, target.getAttribute("data-workflow-id") || "", githubState.branch, "{}"]);
+        if (!workflowProposalResult || !workflowProposalResult.ok) {
+          githubState.error = workflowProposalResult && workflowProposalResult.error || "تعذر إعداد طلب الاختبار.";
+        } else {
+          var workflowProposals = callHermesAndroidJson("listPendingGitHubProposals");
+          githubState.proposals = workflowProposals && workflowProposals.proposals || [];
+          githubState.error = "أُعدّ طلب تشغيل workflow ولم يُرسل بعد؛ راجعه ثم وافق داخل التطبيق.";
+        }
+        renderView();
       } else if (action === "adb-open-developer") {
         if (!callHermesAndroidBoolean("openDeveloperOptions")) {
           androidAdbState.error = "无法直接打开开发者选项，请从系统设置手动进入。";
@@ -3230,6 +3478,15 @@
       }
       if (target.getAttribute("data-action") === "model-preset") {
         applyModelPreset(target.value);
+      } else if (target.getAttribute("data-action") === "github-repo-select") {
+        githubState.selectedRepo = target.value || "";
+        var chosenRepo = githubState.repositories.filter(function (repo) { return repo.full_name === githubState.selectedRepo; })[0];
+        githubState.branch = chosenRepo && chosenRepo.default_branch || "main";
+        githubState.files = [];
+        githubState.fileContents = {};
+        githubState.workflows = [];
+        githubState.runs = [];
+        renderView();
       }
     });
     input.addEventListener("keydown", function (event) {
@@ -4080,4 +4337,3 @@
     installMobileThemeToggle();
   }
 })();
-

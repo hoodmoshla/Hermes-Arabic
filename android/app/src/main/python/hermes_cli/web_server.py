@@ -120,6 +120,8 @@ except ImportError:
 
 WEB_DIST = Path(os.environ["HERMES_WEB_DIST"]) if "HERMES_WEB_DIST" in os.environ else Path(__file__).parent / "web_dist"
 _log = logging.getLogger(__name__)
+_ANDROID_SERVER_LOCK = threading.RLock()
+_ANDROID_SERVER_INSTANCE = None
 
 # ---------------------------------------------------------------------------
 # Per-channel subscriber registry used by /api/pub (PTY-side gateway → dashboard)
@@ -15088,6 +15090,16 @@ def _maybe_open_browser(
     threading.Thread(target=_open, daemon=True).start()
 
 
+def request_server_shutdown() -> bool:
+    """Ask the in-process Uvicorn server to stop; used by Android's explicit stop action."""
+    with _ANDROID_SERVER_LOCK:
+        server = _ANDROID_SERVER_INSTANCE
+        if server is None:
+            return False
+        server.should_exit = True
+        return True
+
+
 def start_server(
     host: str = "127.0.0.1",
     port: int = 9119,
@@ -15323,7 +15335,12 @@ def start_server(
     # no TCP handshake completing (#50641). So *only on Windows* we mirror
     # uvicorn's own machinery and run on the loop factory it picks.
     if sys.platform != "win32":
-        asyncio.run(_serve())
+        try:
+            asyncio.run(_serve())
+        finally:
+            with _ANDROID_SERVER_LOCK:
+                if _ANDROID_SERVER_INSTANCE is server:
+                    _ANDROID_SERVER_INSTANCE = None
         return
 
     # Windows-only path. Resolve the runner + loop factory FIRST (and fall back
@@ -15349,3 +15366,6 @@ def start_server(
         _runner(_serve(), loop_factory=_loop_factory)
     else:
         asyncio.run(_serve())
+    global _ANDROID_SERVER_INSTANCE
+    with _ANDROID_SERVER_LOCK:
+        _ANDROID_SERVER_INSTANCE = server

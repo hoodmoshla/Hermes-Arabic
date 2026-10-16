@@ -137,6 +137,11 @@ def _run_server(host: str, port: int) -> None:
         )
     except BaseException as exc:
         _last_error = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))[-8000:]
+    finally:
+        global _server_thread
+        with _lock:
+            if _server_thread is threading.current_thread():
+                _server_thread = None
 
 
 def start(files_dir: str, port: int = 9129) -> str:
@@ -211,6 +216,113 @@ def diagnose(files_dir: str, port: int = 9129) -> str:
     })
 
 
+def configure_local_model(model_id: str, base_url: str, api_key: str, files_dir: str) -> str:
+    """Select the verified on-device llama.cpp endpoint as Hermes' custom model provider."""
+    try:
+        model_id = str(model_id or "").strip()
+        base_url = str(base_url or "").strip().rstrip("/")
+        api_key = str(api_key or "")
+        expected = "http://127.0.0.1:9130/v1"
+        if model_id != "qwen2.5-0.5b-instruct-q4_k_m" or base_url != expected or len(api_key) < 40:
+            return _json({"ok": False, "error": "Invalid local-model provider configuration"})
+        env = _prepare_environment(files_dir)
+        with _model_config_lock:
+            from hermes_cli.config import get_config_path, load_config, save_config
+
+            backup = Path(env["hermes_home"]) / _LOCAL_MODEL_BACKUP
+            config = load_config()
+            current = config.get("model", "")
+            if isinstance(current, dict):
+                current_model = dict(current)
+            elif isinstance(current, str):
+                current_model = {"default": current} if current else {}
+            else:
+                current_model = {}
+            if not backup.exists():
+                backup.write_text(json.dumps(current_model, ensure_ascii=False), encoding="utf-8")
+                try:
+                    os.chmod(backup, 0o600)
+                except OSError:
+                    pass
+            current_model["provider"] = "custom"
+            current_model["default"] = model_id
+            current_model["base_url"] = expected
+            # The random bearer key is supplied only in process environment from Android Keystore.
+            # Never persist or return the secret in config.yaml or a JavaScript-facing response.
+            current_model.pop("api_key", None)
+            config["model"] = current_model
+            save_config(config)
+            try:
+                os.chmod(get_config_path(), 0o600)
+            except OSError:
+                pass
+            os.environ["CUSTOM_API_KEY"] = api_key
+            saved = load_config().get("model", {})
+            ok = isinstance(saved, dict) and saved.get("provider") == "custom" and saved.get("base_url") == expected
+            return _json({"ok": bool(ok), "model_id": model_id, "base_url": expected,
+                          "config_path": str(get_config_path()), "error": "" if ok else "Hermes did not persist the custom endpoint"})
+    except Exception as exc:
+        return _json({"ok": False, "error": "Local model configuration failed: " + type(exc).__name__})
+
+
+def restore_local_model(files_dir: str) -> str:
+    """Restore the user's exact previous provider configuration after local inference is disabled."""
+    try:
+        env = _prepare_environment(files_dir)
+        with _model_config_lock:
+            from hermes_cli.config import get_config_path, load_config, save_config
+
+            config = load_config()
+            current = config.get("model", {})
+            backup = Path(env["hermes_home"]) / _LOCAL_MODEL_BACKUP
+            restored = False
+            if isinstance(current, dict) and current.get("base_url") == "http://127.0.0.1:9130/v1":
+                if backup.is_file():
+                    old = json.loads(backup.read_text(encoding="utf-8"))
+                    config["model"] = old if isinstance(old, (dict, str)) else {}
+                else:
+                    current = dict(current)
+                    current.pop("base_url", None)
+                    current.pop("api_key", None)
+                    current.pop("provider", None)
+                    current.pop("default", None)
+                    config["model"] = current
+                save_config(config)
+                restored = True
+            if backup.is_file():
+                backup.unlink()
+            try:
+                os.chmod(get_config_path(), 0o600)
+            except OSError:
+                pass
+            os.environ.pop("CUSTOM_API_KEY", None)
+            return _json({"ok": True, "restored": restored})
+    except Exception as exc:
+        return _json({"ok": False, "error": "Could not restore the previous model configuration: " + type(exc).__name__})
+
+
+def stop(files_dir: str, port: int = 9129) -> str:
+    """Stop the local dashboard and allow Android to remove its foreground notification."""
+    global _server_port, _server_thread, _started_at
+    _server_port = int(port or _server_port)
+    _prepare_environment(files_dir)
+    try:
+        from hermes_cli.web_server import request_server_shutdown
+        requested = request_server_shutdown()
+    except Exception:
+        requested = False
+    deadline = time.time() + 20
+    while is_running() and time.time() < deadline:
+        time.sleep(0.2)
+    with _lock:
+        running = is_running()
+        if not running:
+            _server_thread = None
+            _started_at = 0.0
+    return _json({"ok": not running, "stopping_requested": requested, "running": running,
+                  "error": "Hermes server did not stop within 20 seconds" if running else ""})
+
+
 def run_command(command_json: str, files_dir: str, port: int = 9129) -> str:
     try:
         request = json.loads(command_json or "{}")
@@ -221,6 +333,8 @@ def run_command(command_json: str, files_dir: str, port: int = 9129) -> str:
         return start(files_dir, port)
     if command in {"diagnose", "doctor"}:
         return diagnose(files_dir, port)
+    if command == "stop":
+        return stop(files_dir, port)
     if command in {"status", "version"}:
         return status()
     return _json({
@@ -230,3 +344,5 @@ def run_command(command_json: str, files_dir: str, port: int = 9129) -> str:
         "port": port,
         "error": f"Unsupported embedded command: {command}",
     })
+_model_config_lock = threading.RLock()
+_LOCAL_MODEL_BACKUP = "local-model-config-backup.json"
