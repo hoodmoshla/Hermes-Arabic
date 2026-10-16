@@ -53,9 +53,16 @@ jobs:
         run: ./android/gradlew -p android testDebugUnitTest compileDebugAndroidTestJavaWithJavac assembleDebug --console=plain
         env:
           PYTHON: python
-      - name: Announce that the signed release is skipped without repository secrets
+      - name: Report unavailable release signing secret names
         if: ${{ env.ANDROID_KEYSTORE_B64 == '' || env.ANDROID_KEYSTORE_PASSWORD == '' || env.ANDROID_KEY_ALIAS == '' || env.ANDROID_KEY_PASSWORD == '' }}
-        run: echo "::warning::Signed release artifact skipped. Configure all four Android signing secrets to enable it."
+        shell: bash
+        run: |
+          missing=()
+          [[ -n "$ANDROID_KEYSTORE_B64" ]] || missing+=(ANDROID_KEYSTORE_BASE64)
+          [[ -n "$ANDROID_KEYSTORE_PASSWORD" ]] || missing+=(ANDROID_KEYSTORE_PASSWORD)
+          [[ -n "$ANDROID_KEY_ALIAS" ]] || missing+=(ANDROID_KEY_ALIAS)
+          [[ -n "$ANDROID_KEY_PASSWORD" ]] || missing+=(ANDROID_KEY_PASSWORD)
+          echo "::warning::Signed release artifact skipped; unavailable Actions secrets: ${missing[*]}"
       - name: Restore release signing key
         if: ${{ env.ANDROID_KEYSTORE_B64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != '' }}
         shell: bash
