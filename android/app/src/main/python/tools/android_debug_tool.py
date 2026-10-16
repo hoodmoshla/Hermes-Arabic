@@ -35,8 +35,8 @@ def _run_adb(args: list[str], *, input_text: str | None = None, timeout: int = 3
             cwd=_adb_home() or None,
             env={
                 **os.environ,
-                "HOME": _adb_home() or "/data/data/com.sesaloy.hermes/files",
-                "TMPDIR": os.environ.get("TMPDIR", "/data/data/com.sesaloy.hermes/cache"),
+                "HOME": _adb_home() or "/data/data/com.hoodmoshla.hermesarabic/files",
+                "TMPDIR": os.environ.get("TMPDIR", "/data/data/com.hoodmoshla.hermesarabic/cache"),
             },
         )
         output = (completed.stdout or "") + (completed.stderr or "")

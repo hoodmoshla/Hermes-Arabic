@@ -5,8 +5,8 @@ import type { CapacitorConfig } from '@capacitor/cli';
 //   2. MainActivity 通过 HermesAndroid bridge 提供移动端原生能力。
 //   3. 用户不需要安装额外运行环境或执行额外准备步骤。
 const config: CapacitorConfig = {
-  appId: 'com.sesaloy.hermes',
-  appName: 'Hermes',
+  appId: 'com.hoodmoshla.hermesarabic',
+  appName: 'هيرمس العربي',
   webDir: 'www',
   server: {
     cleartext: true,

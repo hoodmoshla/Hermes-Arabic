@@ -1,60 +1,56 @@
-# Hermes Mobile
+# هيرمس العربي | Hermes Arabic
 
-Hermes Mobile packages the Hermes Agent runtime, local Dashboard, Node/TUI runtime, and an Android mobile interface into a self-contained Android application.
+تطبيق Android مستقل بهوية عربية مبني على [Hermes Mobile](https://github.com/sesaloy/hermes-mobile) ويضم كود [Hermes Agent](https://github.com/NousResearch/hermes-agent) محليًا داخل التطبيق عبر Python/Chaquopy. لا يتطلب تثبيت Termux أو VPS. هذا مستودع تطوير خاص، وتظل إشعارات المصدر والتراخيص محفوظة.
 
-> Current status: version 1.1 (`versionCode 2`) is under active development. The published source builds an ARM64 debug APK and is not yet a production-signed release.
+> **الحالة:** نسخة تطوير ARM64. يضم المصدر واجهة هاتف ومحرك Hermes المضمّن، لكن بعض الميزات المطلوبة ما زالت غير مكتملة. لا يوجد حاليًا استدلال GGUF مضمّن ولا تكامل GitHub OAuth، ولم يُشغّل هذا الفرع على هاتف Android فعلي. انظر [حالة المشروع والاختبارات](PROJECT_STATUS.md)، [المصدر والتراخيص](UPSTREAM.md)، و[بحث المحرك المحلي](MODEL_RUNTIME_RESEARCH.md).
 
-## Features
+## البنية والقدرات الموروثة
 
-- Runs Hermes Agent locally on Android without requiring Termux or a remote server.
-- Bundles Python, Dashboard assets, Node/TUI runtime, and required ARM64 native libraries.
-- Provides mobile chat, session persistence, file access, automation, integrations, remote instance status, memory, Skills Hub, themes, and model settings.
-- Provides an in-app Wireless Debugging page and an `android_debug` Agent tool for paired-device diagnostics without Termux.
-- Shows streaming reasoning and tool execution as collapsible, stateful mobile cards.
-- Uses a mobile drawer and settings-oriented navigation designed for phones.
+يحتوي المصدر على Hermes Agent وبيئة Python وخادم Dashboard محلي وواجهات الهاتف وصفحات الذاكرة والمهارات والمهام والمزوّدات. كما يحتفظ بقدرات المحرك الأصلي في الأدوات والجلسات والسياق. تغيّرت الهوية إلى `com.hoodmoshla.hermesarabic`، مع اسم وأيقونة مستقلين، والعربية لغة افتراضية مع منتقي العربية/الإنجليزية/الصينية، وصفحة بدء وطبقة RTL. يطلب مسار الصوت اللغة العربية؛ ويتوقف توفر الصوت فعليًا على محرك TTS وحزمة اللغة المثبتة على الهاتف. النقل من المصدر لا يعني أن جميع القدرات اختُبرت على Android.
 
-## Repository Layout
+## الأمان والخصوصية
 
-- `android/` — Android and Gradle project.
-- `android/app/src/main/python/` — bundled Hermes Agent Python source.
-- `android/app/src/main/assets/` — Dashboard, Node, and TUI assets.
-- `android/app/src/main/jniLibs/arm64-v8a/` — Android ARM64 runtime binaries.
-- `www/` — mobile WebView shell.
-- `Hermes.md` — sanitized public project handoff memory and current development state.
+يوفر جسر Android مسارًا لحفظ إعداد المحادثة بتشفير AES-GCM ومفتاح داخل Android Keystore؛ لا يكتب هذا المسار المفتاح إلى `localStorage` ويمنع إعادة توجيه الطلب إلى مضيف آخر. هذا المسار لم يُختبر على جهاز، ولا ينبغي اعتباره تدفقًا مكتملًا في الواجهة. إعداد Hermes الأساسي يُحفظ في مجلد التطبيق الخاص ويطبّق المصدر صلاحية `0600` على `config.yaml`؛ لم نتحقق على جهاز من سلوك كل موفّر أو سجلّاته. قبل الإرسال إلى أصل بعيد تظهر موافقة عربية توضح أن نص الرسالة وسياق المحادثة والملفات قد تُرسل إلى ذلك المزوّد؛ رفضها يمنع الإرسال. يرفض Android cleartext افتراضيًا ويسمح به فقط لـ `localhost` و`127.0.0.1` لخادم التطبيق المحلي. عطّل التطبيق النسخ الاحتياطي التلقائي. لا تُدرج مفاتيح API أو توقيع APK في المستودع.
 
-## Build
+## الميزات غير المكتملة
 
-Prerequisites:
+- **النماذج المحلية:** لا يوجد محرك llama.cpp مدمج أو مدير تنزيل GGUF/استكمال/حذف. لا تضم الحزمة أوزان نماذج. يمكن للمحرك التواصل مع نقطة متوافقة محلية إذا شغّل المستخدم خدمة مستقلة، وهذا ليس استدلالًا مضمّنًا في APK. راجع `MODEL_RUNTIME_RESEARCH.md`.
+- **GitHub:** لا يتضمن التطبيق تدفق OAuth ولا إدارة صلاحيات مستودعات أو إنشاء فروع/PR عبر واجهة Android. لا تلصق رمزًا شخصيًا في المستودع أو السجلات.
+- **الخلفية:** لا يوجد حاليًا Foreground Service مخصص للمهام الطويلة، ولم يُختبر استرجاع المهمة بعد قتل العملية.
+- **التعريب:** طبقة RTL ومصطلحات الهاتف الأساسية أضيفت، لكن بعض صفحات Dashboard المتقدمة قد تظل بالإنجليزية أو الصينية.
+- **الترخيص:** مكوّن ADB المنقول مشتق بحسب إشعاره من LADB بشروط إعادة توزيع خاصة. لا توزع نسخة Google Play قبل استبداله وإكمال تدقيق تراخيص الملفات الثنائية وSBOM.
 
-- JDK compatible with the configured Android Gradle Plugin.
-- Android SDK with the required build tools and platform installed.
-- Node.js and npm for Capacitor dependency management.
-- The local Python/Chaquopy build requirements referenced by the Android project.
+## البناء المحلي
 
-```powershell
-npm install
+المتطلبات: JDK 21 (أو إصدار متوافق مع AGP)، Android SDK 36 وBuild Tools 36، Node.js 22، Python 3.11، ومساحة لتبعيات Chaquopy. يُبنى APK واحد لـ `arm64-v8a` فقط.
+
+```bash
+npm ci
+npx cap sync android
+npm test
 cd android
-./gradlew assembleDebug --console=plain
+./gradlew testDebugUnitTest assembleDebug --console=plain
 ```
 
-The debug APK is generated under `android/app/build/outputs/apk/debug/`. APK files and local build configuration are intentionally excluded from Git.
+لإعداد Python مختلف عن `python3`:
 
-The bundled development ADB host binary is derived from LADB and must be replaced with an independently built AOSP binary before any Google Play publication. See `THIRD_PARTY_NOTICES.md`.
+```bash
+./gradlew -PhermesBuildPython=/absolute/path/to/python3 assembleRelease
+```
 
-## Platform Support
+لا ينتج `assembleRelease` APK موقّعًا إلا عند ضبط المتغيرات `ANDROID_KEYSTORE_PATH` و`ANDROID_KEYSTORE_PASSWORD` و`ANDROID_KEY_ALIAS` و`ANDROID_KEY_PASSWORD`. لا تضعها في ملفات المستودع. الناتج المتوقع هو `android/app/build/outputs/apk/release/app-release.apk`.
 
-- Android `arm64-v8a` only.
-- Physical ARM64 Android devices are the primary test target.
-- Release signing, upgrade migration, and production release validation are not complete.
+## CI والتوقيع
 
-## Security and Privacy
+يفحص `.github/workflows/android.yml` المشروع، ويشغّل اختبارات الوحدة ويبني Debug دائمًا. يبني ويرفع APK Release موقّعًا فقط بعد إضافة أسرار GitHub Actions التالية إلى المستودع:
 
-Do not commit API keys, access tokens, signing keys, local configuration, databases, session dumps, device backups, logs, or personal device information. See `SECURITY.md` for responsible reporting.
+- `ANDROID_KEYSTORE_BASE64` — ملف keystore مشفر بترميز Base64.
+- `ANDROID_KEYSTORE_PASSWORD` — كلمة مرور keystore.
+- `ANDROID_KEY_ALIAS` — اسم المفتاح.
+- `ANDROID_KEY_PASSWORD` — كلمة مرور المفتاح.
 
-## Project Memory
+أعاد تكامل GitHub الحالي `403 Resource not accessible by integration` عند محاولة إنشاء الأسرار؛ لذلك لم تُضف. يوجد مفتاح تطوير جديد محليًا خارج المستودع فقط ولا يتاح لـ GitHub Actions. لا تُشارك قيم الأسرار في Issues أو ملفات المستودع. فقدان مفتاح التوقيع يمنع تثبيت تحديث فوق النسخة الموقّعة به.
 
-Read `Hermes.md` before continuing development. It records the current architecture, validated features, known limitations, technical constraints, and next steps. The public copy is sanitized and must remain free of private environment information.
+## التراخيص
 
-## License
-
-This repository is distributed under the MIT License. The bundled Hermes Agent source retains the original Nous Research copyright and license notice. See `LICENSE` and `android/app/src/main/python/LICENSE`.
+احتُفظ بترخيص MIT وإشعارات Hermes Mobile وNous Research. قد تحمل الاعتماديات والمهارات والملفات الثنائية تراخيص منفصلة؛ راجع `LICENSE` و`THIRD_PARTY_NOTICES.md` و`UPSTREAM.md`. هذا التوثيق ليس اعتمادًا قانونيًا نهائيًا أو تصريحًا للنشر التجاري.

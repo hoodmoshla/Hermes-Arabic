@@ -1,0 +1,5 @@
+Hermes Arabic bundles source from sesaloy/hermes-mobile and the Hermes Agent Python source from NousResearch/hermes-agent.
+
+The project license and original copyright notices are retained in the repository LICENSE file and in android/app/src/main/python/LICENSE. Third-party components may carry separate licenses; consult THIRD_PARTY_NOTICES.md and adjacent LICENSE/NOTICE files.
+
+The bundled LADB-derived ADB host binary carries additional redistribution terms. The full notice is provided in LADB_LICENSE.txt. Do not distribute that binary through Google Play before replacing it with an independently built, properly licensed alternative.

@@ -1,4 +1,4 @@
-package com.sesaloy.hermes;
+package com.hoodmoshla.hermesarabic;
 
 import android.Manifest;
 import android.app.Activity;
@@ -17,6 +17,8 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -53,10 +55,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 
 public class MainActivity extends BridgeActivity {
 
@@ -414,7 +421,23 @@ public class MainActivity extends BridgeActivity {
 
     private void injectHermesMobileTweaks(WebView view) {
         view.evaluateJavascript(buildHermesMobileTweaksScript(), null);
+        injectHermesArabicLocale(view);
         view.postDelayed(() -> pushSafeAreaInsetsToPage(view), 120);
+    }
+
+    private void injectHermesArabicLocale(WebView view) {
+        try (InputStream input = getAssets().open("hermes-arabic-locale.js");
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[4096];
+            int count;
+            while ((count = input.read(buffer)) != -1) {
+                output.write(buffer, 0, count);
+            }
+            String script = new String(output.toByteArray(), StandardCharsets.UTF_8);
+            view.evaluateJavascript(script, null);
+        } catch (Exception exception) {
+            Log.w(TAG, "Arabic interface localization could not be applied", exception);
+        }
     }
 
     private boolean isTerminalModeUrl(String url) {
@@ -844,7 +867,7 @@ public class MainActivity extends BridgeActivity {
         public String getDashboardSessionToken() {
             HttpURLConnection connection = null;
             try {
-                URL url = new URL("http://127.0.0.1:" + EMBEDDED_AGENT_PORT + "/?locale=zh");
+                URL url = new URL("http://127.0.0.1:" + EMBEDDED_AGENT_PORT + "/?locale=ar");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
@@ -956,23 +979,32 @@ public class MainActivity extends BridgeActivity {
                 String model = request.optString("model", "").trim();
                 JSONArray messages = request.optJSONArray("messages");
                 if (baseUrl.isEmpty()) {
-                    throw new IllegalArgumentException("请先填写 API 端点");
+                    throw new IllegalArgumentException("يرجى إدخال عنوان API");
                 }
                 if (!baseUrl.startsWith("https://") && !baseUrl.startsWith("http://")) {
-                    throw new IllegalArgumentException("API 端点必须以 http:// 或 https:// 开头");
+                    throw new IllegalArgumentException("يجب أن يبدأ عنوان API بـ https://");
                 }
                 if (apiKey.isEmpty()) {
-                    throw new IllegalArgumentException("请先填写 API 密钥");
+                    throw new IllegalArgumentException("يرجى إدخال مفتاح API");
                 }
                 if (model.isEmpty()) {
-                    throw new IllegalArgumentException("请先填写模型名称");
+                    throw new IllegalArgumentException("يرجى إدخال اسم النموذج");
                 }
                 if (messages == null || messages.length() == 0) {
-                    throw new IllegalArgumentException("消息不能为空");
+                    throw new IllegalArgumentException("لا يمكن إرسال محادثة فارغة");
                 }
 
                 String normalizedBase = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
                 URL url = new URL(normalizedBase + "/chat/completions");
+                String host = url.getHost() == null ? "" : url.getHost().toLowerCase(Locale.ROOT);
+                boolean loopback = host.equals("localhost") || host.equals("127.0.0.1")
+                    || host.equals("::1") || host.equals("[::1]");
+                if (url.getUserInfo() != null || url.getQuery() != null || url.getRef() != null) {
+                    throw new IllegalArgumentException("لا تضع بيانات اعتماد أو معاملات سرية داخل رابط API");
+                }
+                if (!"https".equalsIgnoreCase(url.getProtocol()) && !(loopback && "http".equalsIgnoreCase(url.getProtocol()))) {
+                    throw new IllegalArgumentException("الاتصال الخارجي يتطلب HTTPS؛ يسمح بـ HTTP على الهاتف المحلي فقط");
+                }
                 JSONObject payload = new JSONObject();
                 payload.put("model", model);
                 payload.put("messages", messages);
@@ -981,6 +1013,7 @@ public class MainActivity extends BridgeActivity {
                 byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
 
                 connection = (HttpURLConnection) url.openConnection();
+                connection.setInstanceFollowRedirects(false);
                 connection.setRequestMethod("POST");
                 connection.setConnectTimeout(timeoutMs > 0 ? timeoutMs : 60000);
                 connection.setReadTimeout(timeoutMs > 0 ? timeoutMs : 60000);
@@ -1023,21 +1056,17 @@ public class MainActivity extends BridgeActivity {
         public String getMobileChatConfig() {
             JSONObject result = new JSONObject();
             try {
-                File file = new File(getFilesDir(), "mobile_chat_config.json");
-                if (file.exists()) {
-                    try (FileInputStream stream = new FileInputStream(file)) {
-                        return readAll(stream);
-                    }
-                }
-                result.put("apiKey", "");
-                result.put("baseUrl", "");
-                result.put("model", "");
+                JSONObject stored = readMobileChatStoredConfig();
+                String apiKey = getStoredMobileChatApiKey(stored);
+                result.put("apiKey", apiKey);
+                result.put("baseUrl", stored.optString("baseUrl", ""));
+                result.put("model", stored.optString("model", ""));
             } catch (Exception e) {
                 try {
                     result.put("apiKey", "");
                     result.put("baseUrl", "");
                     result.put("model", "");
-                    result.put("error", e.getMessage());
+                    result.put("error", "تعذّر فتح الإعدادات المشفّرة");
                 } catch (Exception ignored) {
                     // ignore
                 }
@@ -1045,21 +1074,98 @@ public class MainActivity extends BridgeActivity {
             return result.toString();
         }
 
+        private JSONObject readMobileChatStoredConfig() throws Exception {
+            File file = new File(getFilesDir(), "mobile_chat_config.json");
+            if (!file.exists()) {
+                return new JSONObject();
+            }
+            try (FileInputStream stream = new FileInputStream(file)) {
+                String content = readAll(stream);
+                return content == null || content.trim().isEmpty() ? new JSONObject() : new JSONObject(content);
+            }
+        }
+
+        private void writeMobileChatStoredConfig(JSONObject stored) throws Exception {
+            try (FileOutputStream stream = openFileOutput("mobile_chat_config.json", Context.MODE_PRIVATE)) {
+                stream.write(stored.toString().getBytes(StandardCharsets.UTF_8));
+                stream.flush();
+            }
+        }
+
+        private SecretKey getMobileChatSecretKey() throws Exception {
+            final String alias = "com.hoodmoshla.hermesarabic.mobile-chat.v1";
+            KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+            if (keyStore.containsAlias(alias)) {
+                return (SecretKey) keyStore.getKey(alias, null);
+            }
+            KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+            generator.init(new KeyGenParameterSpec.Builder(alias,
+                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setRandomizedEncryptionRequired(true)
+                .setKeySize(256)
+                .build());
+            return generator.generateKey();
+        }
+
+        private String encryptMobileChatApiKey(String plainText) throws Exception {
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, getMobileChatSecretKey());
+            byte[] encrypted = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+            return "v1:" + Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP)
+                + ":" + Base64.encodeToString(encrypted, Base64.NO_WRAP);
+        }
+
+        private String decryptMobileChatApiKey(String encoded) throws Exception {
+            String[] parts = encoded.split(":", 3);
+            if (parts.length != 3 || !"v1".equals(parts[0])) {
+                throw new IllegalArgumentException("صيغة المفتاح المشفّر غير مدعومة");
+            }
+            byte[] iv = Base64.decode(parts[1], Base64.NO_WRAP);
+            byte[] ciphertext = Base64.decode(parts[2], Base64.NO_WRAP);
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.DECRYPT_MODE, getMobileChatSecretKey(), new GCMParameterSpec(128, iv));
+            return new String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8);
+        }
+
+        private String getStoredMobileChatApiKey(JSONObject stored) throws Exception {
+            String encrypted = stored.optString("apiKeyEncrypted", "");
+            if (!encrypted.isEmpty()) {
+                return decryptMobileChatApiKey(encrypted);
+            }
+            String legacyPlainText = stored.optString("apiKey", "");
+            if (!legacyPlainText.isEmpty()) {
+                stored.remove("apiKey");
+                stored.put("apiKeyEncrypted", encryptMobileChatApiKey(legacyPlainText));
+                writeMobileChatStoredConfig(stored);
+                return legacyPlainText;
+            }
+            return "";
+        }
+
         @JavascriptInterface
         public boolean saveMobileChatConfig(String configJson) {
             try {
                 JSONObject parsed = new JSONObject(configJson == null ? "{}" : configJson);
-                JSONObject cleaned = new JSONObject();
-                cleaned.put("apiKey", parsed.optString("apiKey", ""));
-                cleaned.put("baseUrl", parsed.optString("baseUrl", ""));
-                cleaned.put("model", parsed.optString("model", ""));
-                File file = new File(getFilesDir(), "mobile_chat_config.json");
-                try (FileOutputStream stream = new FileOutputStream(file, false)) {
-                    stream.write(cleaned.toString().getBytes(StandardCharsets.UTF_8));
+                JSONObject stored = readMobileChatStoredConfig();
+                if (!parsed.has("apiKey")) {
+                    getStoredMobileChatApiKey(stored);
+                } else {
+                    String apiKey = parsed.optString("apiKey", "").trim();
+                    stored.remove("apiKey");
+                    stored.remove("apiKeyEncrypted");
+                    if (!apiKey.isEmpty()) {
+                        stored.put("apiKeyEncrypted", encryptMobileChatApiKey(apiKey));
+                    }
                 }
+                if (parsed.has("baseUrl")) stored.put("baseUrl", parsed.optString("baseUrl", ""));
+                if (parsed.has("model")) stored.put("model", parsed.optString("model", ""));
+                writeMobileChatStoredConfig(stored);
                 return true;
             } catch (Exception e) {
-                Log.w(TAG, "Failed to save mobile chat config", e);
+                Log.w(TAG, "Failed to save encrypted mobile chat config", e);
                 return false;
             }
         }
@@ -1093,7 +1199,7 @@ public class MainActivity extends BridgeActivity {
                     ? new JSONObject()
                     : new JSONObject(optionsJson);
                 String text = options.optString("text", "").trim();
-                String language = options.optString("language", "zh-CN").trim();
+                String language = options.optString("language", "ar").trim();
                 speakTextBlocking(text, language, timeoutMs > 0 ? timeoutMs : 30000);
                 result.put("ok", true);
                 result.put("error", "");
@@ -1247,7 +1353,7 @@ public class MainActivity extends BridgeActivity {
 
     private void speakTextBlocking(String text, String language, int timeoutMs) throws Exception {
         if (text == null || text.trim().isEmpty()) {
-            throw new IllegalArgumentException("没有可播报的内容");
+            throw new IllegalArgumentException("لا يوجد نص لقراءته.");
         }
 
         ensureTextToSpeechReady(Math.max(1000, timeoutMs));
@@ -1255,24 +1361,25 @@ public class MainActivity extends BridgeActivity {
         CountDownLatch speakLatch = new CountDownLatch(1);
         final String[] error = new String[]{""};
         String finalText = text.trim();
-        String finalLanguage = language == null || language.trim().isEmpty() ? "zh-CN" : language.trim();
+        String finalLanguage = language == null || language.trim().isEmpty() ? "ar" : language.trim();
 
         runOnUiThread(() -> {
             try {
                 if (textToSpeech == null || !textToSpeechReady) {
-                    error[0] = "语音播报不可用";
+                    error[0] = "القراءة الصوتية غير متاحة.";
                     return;
                 }
-                Locale locale = "zh-CN".equalsIgnoreCase(finalLanguage)
-                    ? Locale.SIMPLIFIED_CHINESE
-                    : Locale.getDefault();
+                Locale locale = Locale.forLanguageTag(finalLanguage);
+                if (locale.getLanguage().isEmpty()) {
+                    locale = Locale.getDefault();
+                }
                 int languageResult = textToSpeech.setLanguage(locale);
                 if (languageResult == TextToSpeech.LANG_MISSING_DATA || languageResult == TextToSpeech.LANG_NOT_SUPPORTED) {
                     textToSpeech.setLanguage(Locale.getDefault());
                 }
                 int speakResult = textToSpeech.speak(finalText, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                 if (speakResult == TextToSpeech.ERROR) {
-                    error[0] = "语音播报启动失败";
+                    error[0] = "تعذّر بدء القراءة الصوتية.";
                 }
             } catch (Exception e) {
                 error[0] = e.getMessage();
@@ -1360,8 +1467,8 @@ public class MainActivity extends BridgeActivity {
             throw new IllegalStateException("Microphone permission denied");
         }
 
-        String language = "zh-CN";
-        String prompt = "语音听写";
+        String language = "ar";
+        String prompt = "الإملاء الصوتي";
         try {
             JSONObject options = optionsJson == null || optionsJson.isEmpty() ? new JSONObject() : new JSONObject(optionsJson);
             String requestedLanguage = options.optString("language", "");

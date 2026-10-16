@@ -744,8 +744,8 @@ def _speak_android_native(text: str) -> bool:
     try:
         from java import jclass  # type: ignore
 
-        activity = jclass("com.sesaloy.hermes.MainActivity")
-        return bool(activity.speakTextFromPython(text, "zh-CN", 30000))
+        activity = jclass("com.hoodmoshla.hermesarabic.MainActivity")
+        return bool(activity.speakTextFromPython(text, "ar", 30000))
     except Exception as exc:
         logger.debug("Android native TTS bridge failed: %s", exc)
         return False

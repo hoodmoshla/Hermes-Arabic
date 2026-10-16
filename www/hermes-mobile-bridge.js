@@ -19,21 +19,21 @@
   var embeddedDashboardBaseUrl = "";
   var embeddedTerminalUrl = "";
   var MODEL_PRESETS = [
-    { label: "OpenAI 官方 / GPT-5.6 Sol", model: "gpt-5.6-sol", baseUrl: DEFAULT_CHAT_ENDPOINT },
-    { label: "OpenAI 官方 / GPT-5.6 Terra", model: "gpt-5.6-terra", baseUrl: DEFAULT_CHAT_ENDPOINT },
-    { label: "OpenAI 官方 / GPT-5.6 Luna", model: "gpt-5.6-luna", baseUrl: DEFAULT_CHAT_ENDPOINT },
-    { label: "OpenAI 官方 / GPT-5.5", model: "gpt-5.5", baseUrl: DEFAULT_CHAT_ENDPOINT },
-    { label: "OpenAI 官方 / GPT-5.4 mini", model: "gpt-5.4-mini", baseUrl: DEFAULT_CHAT_ENDPOINT },
-    { label: "OpenAI 官方 / GPT-5.4", model: "gpt-5.4", baseUrl: DEFAULT_CHAT_ENDPOINT },
+    { label: "OpenAI / GPT-5.6 Sol", model: "gpt-5.6-sol", baseUrl: DEFAULT_CHAT_ENDPOINT },
+    { label: "OpenAI / GPT-5.6 Terra", model: "gpt-5.6-terra", baseUrl: DEFAULT_CHAT_ENDPOINT },
+    { label: "OpenAI / GPT-5.6 Luna", model: "gpt-5.6-luna", baseUrl: DEFAULT_CHAT_ENDPOINT },
+    { label: "OpenAI / GPT-5.5", model: "gpt-5.5", baseUrl: DEFAULT_CHAT_ENDPOINT },
+    { label: "OpenAI / GPT-5.4 mini", model: "gpt-5.4-mini", baseUrl: DEFAULT_CHAT_ENDPOINT },
+    { label: "OpenAI / GPT-5.4", model: "gpt-5.4", baseUrl: DEFAULT_CHAT_ENDPOINT },
     { label: "Anthropic / Claude Fable 5", model: "claude-fable-5", baseUrl: "https://api.anthropic.com/v1" },
     { label: "Anthropic / Claude Opus 4.8", model: "claude-opus-4-8", baseUrl: "https://api.anthropic.com/v1" },
     { label: "Anthropic / Claude Sonnet 5", model: "claude-sonnet-5", baseUrl: "https://api.anthropic.com/v1" },
     { label: "DeepSeek / V4 Pro", model: "deepseek-v4-pro", baseUrl: "https://api.deepseek.com/v1" },
-    { label: "智谱 GLM / GLM-5.2", model: "glm-5.2", baseUrl: "https://open.bigmodel.cn/api/paas/v4" },
+    { label: "Zhipu GLM / GLM-5.2", model: "glm-5.2", baseUrl: "https://open.bigmodel.cn/api/paas/v4" },
     { label: "Gemini / 3.1 Pro", model: "gemini-3.1-pro-preview", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai" },
     { label: "Moonshot / Kimi K2.7 Code", model: "kimi-k2.7-code", baseUrl: "https://api.moonshot.cn/v1" },
-    { label: "通义千问 / Qwen3.7 Max", model: "qwen3.7-max", baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1" },
-    { label: "通义千问 / Qwen3.7 Plus", model: "qwen3.7-plus", baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1" },
+    { label: "Qwen / Qwen3.7 Max", model: "qwen3.7-max", baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1" },
+    { label: "Qwen / Qwen3.7 Plus", model: "qwen3.7-plus", baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1" },
     { label: "MiniMax / MiniMax-M3", model: "MiniMax-M3", baseUrl: "https://api.minimax.chat/v1" },
     { label: "xAI / Grok 4.3", model: "grok-4.3", baseUrl: "https://api.x.ai/v1" },
     { label: "OpenRouter / Claude Fable 5", model: "anthropic/claude-fable-5", baseUrl: "https://openrouter.ai/api/v1" },
@@ -43,48 +43,48 @@
     { label: "OpenRouter / DeepSeek V4 Pro", model: "deepseek/deepseek-v4-pro", baseUrl: "https://openrouter.ai/api/v1" },
     { label: "OpenRouter / GLM-5.2", model: "z-ai/glm-5.2", baseUrl: "https://openrouter.ai/api/v1" },
     { label: "OpenRouter / Kimi K2.7 Code", model: "moonshotai/kimi-k2.7-code", baseUrl: "https://openrouter.ai/api/v1" },
-    { label: "Ollama / 本地 llama3.1", model: "llama3.1", baseUrl: "http://127.0.0.1:11434/v1" },
-    { label: "自定义", model: "", baseUrl: "" }
+    { label: "Ollama / llama3.1 محلي", model: "llama3.1", baseUrl: "http://127.0.0.1:11434/v1" },
+    { label: "مخصص", model: "", baseUrl: "" }
   ];
   var DRAWER_TOOLS = [
-    ["资源中心", "图片、音频、文档等产出资源", "resources", "工作台"],
-    ["定时自动化", "Cron、自然语言任务、多渠道投递", "automation", "工作台"],
-    ["接入", "消息平台、网关配置、状态监控", "integrations", "连接"],
-    ["远程实例", "OAuth、账号密码、安全 WebSocket", "remote", "连接"]
+    ["مركز الملفات", "الصور والصوت والمستندات والملفات الناتجة", "resources", "الرئيسية"],
+    ["المهام المجدولة", "جدولة المهام وتسليمها عبر قنوات متعددة", "automation", "الرئيسية"],
+    ["التكاملات", "منصات المراسلة وإعداد البوابة ومراقبة الحالة", "integrations", "الاتصال"],
+    ["الخوادم البعيدة", "OAuth أو بيانات الحساب واتصال WebSocket آمن", "remote", "الاتصال"]
   ];
   var SETTINGS_TOOLS = [
-    ["模型与接口", "本机 Hermes 模型、端点和密钥配置", "models", "基础设置"],
-    ["语言", "多语言切换与区域设置", "language", "基础设置"],
-    ["外观", "深色主题、字体和密度", "appearance", "基础设置"],
-    ["用量", "Token 消耗与 /usage 统计", "usage", "基础设置"],
-    ["记忆管理", "结构化项目记忆与用户偏好", "memory", "Agent 能力"],
-    ["工件", "Artifacts 流程和成果管理", "artifacts", "Agent 能力"],
-    ["Skills Hub", "技能商店、安装、卸载、安全扫描", "skills", "Agent 能力"],
-    ["Persona", "编辑 SOUL.md 人设与输出风格", "persona", "Agent 能力"],
-    ["工具集", "网页、终端、文件、代码、视觉、图像、TTS", "tools", "Agent 能力"],
-    ["MCP", "浏览、安装、切换 MCP 服务器", "mcp", "Agent 能力"],
-    ["沙箱", "本地、Docker、SSH、Singularity、Modal", "sandboxes", "高级"],
-    ["子代理", "隔离环境子 Agent 和并行委派", "subagents", "高级"],
-    ["命令面板", "Cmd/Ctrl+K 与全局操作", "command-palette", "高级"]
+    ["النماذج والاتصالات", "إعداد نماذج Hermes وعنوان الخدمة ومفتاح API", "models", "الإعدادات الأساسية"],
+    ["اللغة", "تغيير اللغة والإعدادات الإقليمية", "language", "الإعدادات الأساسية"],
+    ["المظهر", "الوضع الداكن والخط وحجم العرض", "appearance", "الإعدادات الأساسية"],
+    ["الاستخدام", "استهلاك الرموز وإحصاءات الاستخدام", "usage", "الإعدادات الأساسية"],
+    ["إدارة الذاكرة", "ذاكرة المشروع المنظمة وتفضيلات المستخدم", "memory", "قدرات الوكيل"],
+    ["الملفات الناتجة", "إدارة سير العمل والنتائج", "artifacts", "قدرات الوكيل"],
+    ["Skills Hub", "استعراض المهارات وتثبيتها وإزالتها وفحصها", "skills", "قدرات الوكيل"],
+    ["Persona", "تعديل الشخصية وأسلوب الإجابة في SOUL.md", "persona", "قدرات الوكيل"],
+    ["الأدوات", "الويب والطرفية والملفات والبرمجة والصور والصوت", "tools", "قدرات الوكيل"],
+    ["MCP", "استعراض خوادم MCP وتثبيتها وتبديلها", "mcp", "قدرات الوكيل"],
+    ["بيئات معزولة", "محلي وDocker وSSH وSingularity وModal", "sandboxes", "متقدم"],
+    ["الوكلاء الفرعيون", "وكلاء فرعيون معزولون وتنفيذ متوازٍ", "subagents", "متقدم"],
+    ["لوحة الأوامر", "Cmd/Ctrl+K والإجراءات العامة", "command-palette", "متقدم"]
   ];
   var ALL_SETTINGS_TOOLS = DRAWER_TOOLS.concat(SETTINGS_TOOLS);
   var FEATURE_INFO = {
-    integrations: ["接入", "消息平台、网关配置和状态监控会接入本机 Hermes。"],
-    remote: ["远程实例", "连接 Hermes Gateway 的配置入口保留在这里。"],
-    language: ["语言", "语言切换会继续同步到桌面 dashboard 的同源设置。"],
-    resources: ["资源中心", "图片、音频、文档和导出文件会在这里统一管理。"],
-    artifacts: ["工件", "Artifacts 流程和成果会在这里集中展示。"],
-    automation: ["定时自动化", "Cron、自然语言任务和多渠道投递入口。"],
-    appearance: ["外观", "主题、字体和密度设置。"],
-    usage: ["用量", "Token、模型和会话用量统计。"],
-    memory: ["记忆管理", "结构化记忆、项目上下文和偏好设置。"],
-    skills: ["Skills Hub", "技能搜索、安装、卸载和安全扫描。"],
-    persona: ["Persona", "人设、语气和输出风格配置。"],
-    tools: ["工具集", "网页、终端、文件、代码、视觉和 TTS 工具配置。"],
-    mcp: ["MCP", "MCP 服务器浏览、安装和切换。"],
-    sandboxes: ["沙箱", "本地、Docker、SSH、Singularity、Modal 沙箱。"],
-    subagents: ["子代理", "隔离环境子 Agent 和并行委派。"],
-    "command-palette": ["命令面板", "全局操作和快捷命令入口。"]
+    integrations: ["التكاملات", "إعداد منصات المراسلة والبوابة ومراقبة حالة Hermes المحلي."],
+    remote: ["الخوادم البعيدة", "تجد هنا إعداد الاتصال ببوابة Hermes."],
+    language: ["اللغة", "تتزامن اللغة مع إعدادات لوحة Hermes على سطح المكتب."],
+    resources: ["مركز الملفات", "إدارة الصور والصوت والمستندات والملفات المصدّرة من هنا."],
+    artifacts: ["الملفات الناتجة", "تُعرض هنا الملفات والنتائج الناتجة عن المهام."],
+    automation: ["المهام المجدولة", "جدولة المهام بلغة طبيعية وتسليمها إلى قنوات متعددة."],
+    appearance: ["المظهر", "إعدادات السمة والخط وحجم العرض."],
+    usage: ["الاستخدام", "إحصاءات الرموز والنماذج واستخدام المحادثات."],
+    memory: ["إدارة الذاكرة", "الذاكرة المنظمة وسياق المشروع والتفضيلات."],
+    skills: ["Skills Hub", "البحث عن المهارات وتثبيتها وإزالتها وفحصها."],
+    persona: ["Persona", "إعداد الشخصية والنبرة وأسلوب الإجابة."],
+    tools: ["الأدوات", "إعداد أدوات الويب والطرفية والملفات والبرمجة والصور والصوت."],
+    mcp: ["MCP", "استعراض خوادم MCP وتثبيتها وتبديلها."],
+    sandboxes: ["بيئات معزولة", "بيئات محلية أو Docker أو SSH أو Singularity أو Modal."],
+    subagents: ["الوكلاء الفرعيون", "وكلاء فرعيون معزولون وتنفيذ متوازٍ."],
+    "command-palette": ["لوحة الأوامر", "الإجراءات العامة والأوامر المختصرة."]
   };
   var SLASH_COMMANDS = {
     "/new": "new-session",
@@ -96,7 +96,7 @@
     "/undo": "undo"
   };
   var CHANNELS = [
-    "Telegram", "Discord", "Slack", "WhatsApp", "Signal", "飞书", "钉钉", "企业微信", "个人微信", "QQ", "邮件", "短信", "Matrix", "Line", "Teams", "Notion", "GitHub", "Webhooks", "RSS", "自定义 HTTP"
+    "Telegram", "Discord", "Slack", "WhatsApp", "Signal", "Feishu", "DingTalk", "WeCom", "WeChat", "QQ", "البريد الإلكتروني", "رسائل نصية", "Matrix", "Line", "Teams", "Notion", "GitHub", "Webhooks", "RSS", "HTTP مخصص"
   ];
   var listeners = {
     backendExit: [],
@@ -359,21 +359,21 @@
 
   function formatEmbeddedStatus(result) {
     if (!result || typeof result !== "object") {
-      return "本机服务没有返回状态。";
+      return "لم تُعِد الخدمة المحلية حالة.";
     }
     var lines = [];
-    lines.push("本机服务: " + (result.running ? "运行中" : "未运行"));
+    lines.push("الخدمة المحلية: " + (result.running ? "قيد التشغيل" : "متوقف"));
     if (result.url) {
-      lines.push("地址: " + result.url);
+      lines.push("العنوان: " + result.url);
     }
     if (result.uptime_seconds != null) {
-      lines.push("运行时长: " + result.uptime_seconds + " 秒");
+      lines.push("مدة التشغيل: " + result.uptime_seconds + " ثانية");
     }
     if (result.api_status) {
-      lines.push("服务接口: 已响应");
+      lines.push("استجابت واجهة الخدمة");
     }
     if (result.error) {
-      lines.push("错误: " + result.error);
+      lines.push("خطأ: " + result.error);
     }
     return lines.join("\n");
   }
@@ -456,7 +456,7 @@
       createdAt: Date.now(),
       id: "session-" + Date.now() + "-" + Math.random().toString(16).slice(2),
       messages: (seedMessages || []).slice(-40),
-      title: title || "新会话",
+      title: title || "محادثة جديدة",
       updatedAt: Date.now()
     };
   }
@@ -472,7 +472,7 @@
         createdAt: session && session.createdAt || Date.now(),
         id: session && session.id || ("session-" + Date.now() + "-" + Math.random().toString(16).slice(2)),
         messages: messages,
-        title: session && session.title || "新会话",
+        title: session && session.title || "محادثة جديدة",
         updatedAt: session && session.updatedAt || Date.now()
       };
     });
@@ -486,10 +486,10 @@
         return sessions;
       }
       var legacyMessages = loadMobileChatHistory();
-      return [createMobileSession(legacyMessages, legacyMessages.length ? "当前会话" : "新会话")];
+      return [createMobileSession(legacyMessages, legacyMessages.length ? "المحادثة الحالية" : "محادثة جديدة")];
     } catch (error) {
       logMobileEvent("mobile-sessions-load-failed", { error: String(error && error.message || error) });
-      return [createMobileSession([], "新会话")];
+      return [createMobileSession([], "محادثة جديدة")];
     }
   }
 
@@ -537,7 +537,7 @@
     if (requireToken) {
       var token = getDashboardSessionToken();
       if (!token) {
-        throw new Error("无法连接本机 Hermes 会话，请稍后重试或进入终端模式。");
+        throw new Error("تعذّر الاتصال بجلسة Hermes المحلية. حاول لاحقًا أو افتح وضع الطرفية.");
       }
       headers["X-Hermes-Session-Token"] = token;
     }
@@ -549,11 +549,11 @@
     try {
       envelope = raw ? JSON.parse(raw) : {};
     } catch (error) {
-      throw new Error("本机服务返回格式异常");
+      throw new Error("أعادت الخدمة المحلية استجابة غير متوقعة");
     }
     if (!envelope.ok) {
       var detail = envelope.detail || envelope.error || envelope.body || ("HTTP " + (envelope.status || 0));
-      throw new Error(String(detail || "本机服务请求失败"));
+      throw new Error(String(detail || "فشل طلب الخدمة المحلية"));
     }
     if (envelope.json && typeof envelope.json === "object") {
       return envelope.json;
@@ -624,9 +624,9 @@
     }
     if (!promptSent) {
       if (/summoning|starting\s*agent|forgig session|HermesAgent|Messenger of the Digital Gods/i.test(cleaned)) {
-        return "正在启动本机 Hermes Agent...";
+        return "جارٍ تشغيل Hermes Agent المحلي...";
       }
-      return cleaned ? "正在连接本机 Hermes Agent..." : "";
+      return cleaned ? "جارٍ الاتصال بـ Hermes Agent المحلي..." : "";
     }
     return serializeAgentOutput(parseTerminalOutputParts(cleaned));
   }
@@ -1081,11 +1081,12 @@
       appearance: { loading: false, error: "", data: null }
     };
     var currentTheme = preferredMobileTheme();
-    var currentLocale = "zh";
+    var currentLocale = "ar";
     try {
-      currentLocale = window.localStorage && (window.localStorage.getItem("hermes.mobile.locale") || window.localStorage.getItem("hermes.desktop.locale")) || "zh";
+      var savedLocale = window.localStorage && (window.localStorage.getItem("hermes.mobile.locale") || window.localStorage.getItem("hermes.desktop.locale")) || "ar";
+      currentLocale = savedLocale === "en" ? "en" : (savedLocale === "zh" || savedLocale === "zh-CN") ? "zh" : "ar";
     } catch (error) {
-      currentLocale = "zh";
+      currentLocale = "ar";
     }
     var shell = document.getElementById("hermes-mobile-shell");
     var body = document.getElementById("hermes-mobile-chat-body");
@@ -1287,7 +1288,7 @@
       try {
         var date = typeof value === "number" ? new Date(value * 1000) : new Date(value);
         if (!isNaN(date.getTime())) {
-          return date.toLocaleString("zh-CN", { hour12: false });
+          return date.toLocaleString(currentLocale === "zh" ? "zh-CN" : currentLocale === "en" ? "en" : "ar", { hour12: false });
         }
       } catch (error) {
         // fall through
@@ -2107,7 +2108,7 @@
         isSpeaking = true;
         syncTtsButton();
         if (window.HermesAndroid && typeof window.HermesAndroid.speakText === "function") {
-          var nativeResult = JSON.parse(window.HermesAndroid.speakText(JSON.stringify({ text: content, language: "zh-CN" }), 30000));
+          var nativeResult = JSON.parse(window.HermesAndroid.speakText(JSON.stringify({ text: content, language: currentLocale === "zh" ? "zh-CN" : currentLocale === "en" ? "en" : "ar" }), 30000));
           if (nativeResult.ok) {
             setTemporarySubtitle("正在播报");
             window.setTimeout(function () {
@@ -2156,7 +2157,7 @@
         if (window.speechSynthesis && typeof window.SpeechSynthesisUtterance === "function") {
           window.speechSynthesis.cancel();
           var utterance = new SpeechSynthesisUtterance(content);
-          utterance.lang = "zh-CN";
+          utterance.lang = currentLocale === "zh" ? "zh-CN" : currentLocale === "en" ? "en" : "ar";
           utterance.onend = utterance.onerror = function () {
             if (speechRequestId !== speechRequestSerial) {
               return;
@@ -2253,9 +2254,54 @@
       speakTextNow(text);
     }
 
+    function isLoopbackProviderHost(hostname) {
+      var host = String(hostname || "").toLowerCase().replace(/^\[|\]$/g, "");
+      return host === "localhost" || host.endsWith(".localhost") || host === "::1" || /^127\./.test(host);
+    }
+
+    async function ensureExternalProviderConsent() {
+      await refreshModelStatus();
+      var endpoint;
+      try {
+        endpoint = new URL(String(config.baseUrl || DEFAULT_CHAT_ENDPOINT).trim());
+      } catch (error) {
+        setTemporarySubtitle("تعذّر التحقق من عنوان مزوّد النموذج. راجع الإعدادات قبل الإرسال.");
+        return false;
+      }
+      if (isLoopbackProviderHost(endpoint.hostname)) {
+        return true;
+      }
+      if (endpoint.protocol !== "https:") {
+        setTemporarySubtitle("الاتصال البعيد غير المشفّر محظور. استخدم HTTPS قبل الإرسال.");
+        return false;
+      }
+      var origin = endpoint.origin;
+      var consentKey = "hermes.mobile.external-provider-consent:" + origin;
+      try {
+        if (window.localStorage.getItem(consentKey) === "accepted") {
+          return true;
+        }
+      } catch (error) {
+        // Ask again next time if local storage is unavailable.
+      }
+      var notice = "قبل المتابعة: قد يُرسل نص رسالتك وسياق المحادثة والملفات المستخدمة إلى مزوّد النموذج عبر الإنترنت (" + origin + "). راجع سياسة المزوّد؛ لن نرسل هذه الرسالة ما لم توافق. هل تريد المتابعة؟";
+      if (!window.confirm(notice)) {
+        return false;
+      }
+      try {
+        window.localStorage.setItem(consentKey, "accepted");
+      } catch (error) {
+        // Consent remains valid for this request even if it cannot be persisted.
+      }
+      return true;
+    }
+
     async function submitMessage() {
       var text = (input.value || "").trim();
       if (!text && !selectedFiles.length) {
+        return;
+      }
+      if (!(await ensureExternalProviderConsent())) {
         return;
       }
       input.value = "";
@@ -2630,8 +2676,8 @@
     function renderLanguagePage() {
       return [
         "<div class=\"hermes-mobile-section\">",
-        renderFeatureHeader("language", "语言", "切换移动界面与 Dashboard 的显示语言。"),
-        "<div class=\"hermes-mobile-panel\"><h2>当前语言</h2><p>" + (currentLocale === "en" ? "English" : "简体中文") + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"zh\">简体中文</button><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"en\">English</button></div></div>",
+        renderFeatureHeader("language", "اللغة", "تغيير لغة واجهة الهاتف ولوحة Hermes."),
+        "<div class=\"hermes-mobile-panel\"><h2>اللغة الحالية</h2><p>" + (currentLocale === "en" ? "English" : currentLocale === "zh" ? "简体中文" : "العربية") + "</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"ar\">العربية</button><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"en\">English</button><button class=\"secondary\" type=\"button\" data-action=\"language-set\" data-locale=\"zh\">简体中文</button></div></div>",
         "</div>"
       ].join("");
     }
@@ -2922,7 +2968,7 @@
       } else if (action === "terminal") {
         openTerminalMode();
       } else if (action === "open-models") {
-        openDashboardPath("/models?locale=zh");
+        openDashboardPath("/models?locale=ar");
       } else if (action === "feature-refresh") {
         var refreshView = target.getAttribute("data-view") || currentView;
         loadFeatureData(refreshView, { force: true });
@@ -3063,7 +3109,8 @@
         androidAdbState.message = testAdbResult.ok ? "控制测试成功，设备型号：" + String(testAdbResult.output || "Android") : "";
         renderView();
       } else if (action === "language-set") {
-        currentLocale = target.getAttribute("data-locale") === "en" ? "en" : "zh";
+        var requestedLocale = target.getAttribute("data-locale");
+        currentLocale = requestedLocale === "en" ? "en" : requestedLocale === "zh" ? "zh" : "ar";
         try {
           localStorage.setItem("hermes.mobile.locale", currentLocale);
           localStorage.setItem("hermes.desktop.locale", currentLocale);
@@ -3071,8 +3118,8 @@
         } catch (error) {
           // ignore storage failures
         }
-        document.documentElement.lang = currentLocale === "en" ? "en" : "zh-CN";
-        setTemporarySubtitle(currentLocale === "en" ? "Language: English" : "语言：简体中文");
+        document.documentElement.lang = currentLocale === "en" ? "en" : currentLocale === "zh" ? "zh-CN" : "ar";
+        setTemporarySubtitle(currentLocale === "en" ? "Language: English" : currentLocale === "zh" ? "语言：简体中文" : "اللغة: العربية");
         renderView();
       } else if (action === "appearance-mobile-theme") {
         applyShellTheme(target.getAttribute("data-theme") === "dark" ? "dark" : "light");
@@ -3351,7 +3398,7 @@
 
   async function api(request) {
     if (request && request.path === "/api/config" && (!request.method || request.method === "GET")) {
-      return { display: { language: "zh" } };
+      return { display: { language: currentLocale } };
     }
     return Promise.reject(new Error("Android 版当前使用 APK 内置移动端能力。"));
   }

@@ -1,0 +1,94 @@
+name: Android ARM64 CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-and-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install required Android platform and build tools
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Install npm dependencies
+        run: npm ci
+      - name: Synchronize Capacitor Android project
+        run: npx cap sync android
+      - name: Run repository checks
+        run: npm test
+      - name: Make Gradle wrapper executable
+        run: chmod +x android/gradlew
+      - name: Run unit tests and build debug APK
+        run: ./android/gradlew -p android testDebugUnitTest assembleDebug --console=plain
+        env:
+          PYTHON: python
+      - name: Announce that the signed release is skipped without repository secrets
+        if: ${{ env.ANDROID_KEYSTORE_B64 == '' || env.ANDROID_KEYSTORE_PASSWORD == '' || env.ANDROID_KEY_ALIAS == '' || env.ANDROID_KEY_PASSWORD == '' }}
+        run: echo "::warning::Signed release artifact skipped. Configure all four Android signing secrets to enable it."
+      - name: Restore release signing key
+        if: ${{ env.ANDROID_KEYSTORE_B64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$RUNNER_TEMP/signing"
+          printf '%s' "$ANDROID_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/signing/release.jks"
+          chmod 600 "$RUNNER_TEMP/signing/release.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/signing/release.jks" >> "$GITHUB_ENV"
+      - name: Build signed ARM64 release APK
+        if: ${{ env.ANDROID_KEYSTORE_B64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != '' }}
+        shell: bash
+        run: ./android/gradlew -p android assembleRelease --console=plain
+        env:
+          PYTHON: python
+      - name: Verify release signature, package and ABI
+        if: ${{ env.ANDROID_KEYSTORE_B64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -f "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep -F "package: name='com.hoodmoshla.hermesarabic'"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep -F "native-code: 'arm64-v8a'"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+          mkdir -p dist
+          cp "$APK" dist/hermes-arabic-arm64.apk
+          sha256sum dist/hermes-arabic-arm64.apk > dist/hermes-arabic-arm64.apk.sha256
+      - name: Upload signed ARM64 APK artifact
+        if: ${{ env.ANDROID_KEYSTORE_B64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: hermes-arabic-arm64-apk
+          path: |
+            dist/hermes-arabic-arm64.apk
+            dist/hermes-arabic-arm64.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
