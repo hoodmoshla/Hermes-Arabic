@@ -80,6 +80,7 @@ def check() -> list[str]:
         errors.append("Web and Android bridge copies are not identical")
     asset_pairs = [
         (ROOT / "www/index.html", ROOT / "android/app/src/main/assets/public/index.html"),
+        (ROOT / "www/hermes-mobile-agents.js", ROOT / "android/app/src/main/assets/public/hermes-mobile-agents.js"),
         (ROOT / "www/hermes-arabic-locale.js", ROOT / "android/app/src/main/assets/hermes-arabic-locale.js"),
         (ROOT / "www/hermes-arabic-locale.js", ROOT / "android/app/src/main/assets/public/hermes-arabic-locale.js"),
         (ROOT / "www/hermes-arabic-locale.js", ROOT / "android/app/src/main/python/hermes_cli/web_dist/hermes-arabic-locale.js"),
@@ -93,7 +94,7 @@ def check() -> list[str]:
             errors.append(f"Localized web asset is missing or differs from its Android/dashboard copy: {source.relative_to(ROOT)}")
             break
     bridge_text = web_bridge.read_text(encoding="utf-8") if web_bridge.exists() else ""
-    for marker in ("ماذا تريد من Hermes أن يفعل اليوم؟", "أنشئ سير عمل للهاتف", "الخصوصية والبيانات", "data-action=\\\"capture-photo\\\"", "data-action=\\\"voice-input\\\""):
+    for marker in ("ماذا تريد من ", "أنشئ سير عمل للهاتف", "الخصوصية والبيانات", "data-action=\\\"capture-photo\\\"", "data-action=\\\"voice-input\\\"", "data-action=\\\"agent-new\\\"", "data-action=\\\"parallel-run\\\"", "data-action=\\\"parallel-pick-files\\\"", "data-action=\\\"parallel-capture-photo\\\"", "formatContextRef(item.path)", "Promise.all(jobs.map", "session.create", "prompt.submit", "android-mobile-parallel"):
         if marker not in bridge_text:
             errors.append(f"Critical Arabic mobile UI control or translation is missing: {marker}")
             break

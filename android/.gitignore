@@ -94,6 +94,10 @@ capacitor-cordova-android-plugins
 
 # Copied web assets
 app/src/main/assets/public
+!app/src/main/assets/public/
+app/src/main/assets/public/*
+!app/src/main/assets/public/hermes-mobile-agents.js
+!app/src/main/assets/public/hermes-arabic-mobile.css
 
 # Generated Config files
 app/src/main/assets/capacitor.config.json

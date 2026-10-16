@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "echo 'Capacitor static shell; Android build is managed by Gradle'",
-    "test": "python3 -m unittest discover -s tests -v && node --check www/hermes-mobile-bridge.js && python3 scripts/verify_project.py"
+    "test": "python3 -m unittest discover -s tests -v && node --check www/hermes-mobile-bridge.js && node --test tests/mobile_agents.test.js && python3 scripts/verify_project.py"
   },
   "dependencies": {
     "@capacitor/android": "^8.2.0",

@@ -11,6 +11,7 @@
   var MOBILE_CHAT_CONFIG_KEY = "hermes.mobile.chat.config";
   var MOBILE_CHAT_HISTORY_KEY = "hermes.mobile.chat.history";
   var MOBILE_SESSIONS_KEY = "hermes.mobile.chat.sessions.v1";
+  var MOBILE_AGENTS_KEY = "hermes.mobile.agents.v1";
   var MOBILE_READY_KEY = "hermes.mobile.ready.v1";
   var MOBILE_TTS_ENABLED_KEY = "hermes.mobile.tts.enabled";
   var DEFAULT_CHAT_ENDPOINT = "https://api.openai.com/v1";
@@ -467,6 +468,24 @@
     }
   }
 
+  function loadMobileAgents() {
+    try {
+      var raw = window.localStorage && window.localStorage.getItem(MOBILE_AGENTS_KEY);
+      return window.HermesMobileAgents.normalizeAgents(raw ? JSON.parse(raw) : window.HermesMobileAgents.starterAgents());
+    } catch (error) {
+      logMobileEvent("mobile-agents-load-failed", { error: String(error && error.message || error) });
+      return window.HermesMobileAgents.starterAgents();
+    }
+  }
+
+  function saveMobileAgents(agents) {
+    try {
+      window.localStorage.setItem(MOBILE_AGENTS_KEY, JSON.stringify(window.HermesMobileAgents.normalizeAgents(agents)));
+    } catch (error) {
+      logMobileEvent("mobile-agents-save-failed", { error: String(error && error.message || error) });
+    }
+  }
+
   function loadMobileChatHistory() {
     try {
       var raw = window.localStorage && window.localStorage.getItem(MOBILE_CHAT_HISTORY_KEY);
@@ -490,8 +509,9 @@
     }
   }
 
-  function createMobileSession(seedMessages, title) {
+  function createMobileSession(seedMessages, title, agentId) {
     return {
+      agentId: agentId || "agent-hermes",
       backendSessionId: "",
       createdAt: Date.now(),
       id: "session-" + Date.now() + "-" + Math.random().toString(16).slice(2),
@@ -502,27 +522,7 @@
   }
 
   function normalizeMobileSessions(value) {
-    var parsed = Array.isArray(value) ? value : [];
-    return parsed.map(function (session) {
-      var messages = Array.isArray(session && session.messages) ? session.messages.filter(function (message) {
-        return message && (message.role === "user" || message.role === "assistant") && typeof message.content === "string";
-      }).slice(-40).map(function (message) {
-        var attachments = Array.isArray(message.attachments) ? message.attachments.filter(function (item) {
-          return item && typeof item.name === "string";
-        }).map(function (item) {
-          return { name: item.name, path: typeof item.path === "string" ? item.path : "" };
-        }) : [];
-        return { role: message.role, content: message.content, attachments: attachments };
-      }) : [];
-      return {
-        backendSessionId: session && session.backendSessionId || "",
-        createdAt: session && session.createdAt || Date.now(),
-        id: session && session.id || ("session-" + Date.now() + "-" + Math.random().toString(16).slice(2)),
-        messages: messages,
-        title: session && session.title || "محادثة جديدة",
-        updatedAt: session && session.updatedAt || Date.now()
-      };
-    });
+    return window.HermesMobileAgents.normalizeSessions(value);
   }
 
   function loadMobileSessions() {
@@ -533,7 +533,7 @@
         return sessions;
       }
       var legacyMessages = loadMobileChatHistory();
-      return [createMobileSession(legacyMessages, legacyMessages.length ? "المحادثة الحالية" : "محادثة جديدة")];
+      return [createMobileSession(legacyMessages, legacyMessages.length ? "المحادثة الحالية" : "محادثة جديدة", window.HermesMobileAgents.DEFAULT_AGENT_ID)];
     } catch (error) {
       logMobileEvent("mobile-sessions-load-failed", { error: String(error && error.message || error) });
       return [createMobileSession([], "محادثة جديدة")];
@@ -1071,7 +1071,7 @@
       "  <div id=\"hermes-mobile-drawer-backdrop\" data-action=\"close-drawer\"></div>",
       "  <aside id=\"hermes-mobile-drawer\" aria-label=\"قائمة تنقل Hermes\">",
       "    <div id=\"hermes-mobile-drawer-head\"><div id=\"hermes-mobile-drawer-brand\"><div class=\"mark\">H</div><div><strong>Hermes</strong><span>وكيلك على الهاتف</span></div></div><button id=\"hermes-mobile-drawer-close\" type=\"button\" data-action=\"close-drawer\" aria-label=\"إغلاق قائمة التنقل\">×</button></div>",
-      "    <div id=\"hermes-mobile-drawer-actions\"><button id=\"hermes-mobile-drawer-phone\" type=\"button\" data-action=\"view\" data-view=\"phone-control\"><span class=\"icon\">▣</span><span>التحكم بالهاتف</span></button><button id=\"hermes-mobile-drawer-new\" type=\"button\" data-action=\"new-session\"><span class=\"icon\">✎</span><span>محادثة جديدة</span></button><label id=\"hermes-mobile-drawer-search-wrap\"><span class=\"icon\">⌕</span><input id=\"hermes-mobile-drawer-search\" type=\"search\" placeholder=\"ابحث في المحادثات\" autocomplete=\"off\"></label></div>",
+      "    <div id=\"hermes-mobile-drawer-actions\"><button id=\"hermes-mobile-drawer-phone\" type=\"button\" data-action=\"view\" data-view=\"phone-control\"><span class=\"icon\">▣</span><span>التحكم بالهاتف</span></button><button id=\"hermes-mobile-drawer-agents\" type=\"button\" data-action=\"view\" data-view=\"agents\"><span class=\"icon\">✣</span><span>الوكلاء</span></button><button id=\"hermes-mobile-drawer-parallel\" type=\"button\" data-action=\"view\" data-view=\"parallel\"><span class=\"icon\">⇉</span><span>مهام متوازية</span></button><button id=\"hermes-mobile-drawer-new\" type=\"button\" data-action=\"new-session\"><span class=\"icon\">✎</span><span>محادثة جديدة</span></button><label id=\"hermes-mobile-drawer-search-wrap\"><span class=\"icon\">⌕</span><input id=\"hermes-mobile-drawer-search\" type=\"search\" placeholder=\"ابحث في المحادثات\" autocomplete=\"off\"></label></div>",
       "    <div id=\"hermes-mobile-drawer-list\"></div>",
       "    <div id=\"hermes-mobile-drawer-foot\"><div id=\"hermes-mobile-drawer-profile\"><div class=\"avatar\">H</div><div><strong>Hermes</strong><span>الوكيل المحلي</span></div></div><button id=\"hermes-mobile-drawer-settings\" type=\"button\" data-action=\"view\" data-view=\"settings\" aria-label=\"الإعدادات\">⚙</button></div>",
       "  </aside>",
@@ -1099,10 +1099,18 @@
 
     var config = loadMobileChatConfig();
     var modelStatus = { checked: false, hasApiKey: false, model: config.model || "" };
+    var agents = loadMobileAgents();
     var sessions = loadMobileSessions();
+    var activeAgentId = sessions[0] && sessions[0].agentId || window.HermesMobileAgents.DEFAULT_AGENT_ID;
     var activeSessionId = sessions[0] && sessions[0].id;
     var messages = sessions[0] ? sessions[0].messages : [];
     var currentView = "chat";
+    var agentEditorId = "";
+    var parallelJobs = [];
+    var parallelRunning = false;
+    var parallelError = "";
+    var parallelTaskDrafts = Object.create(null);
+    var parallelAttachmentsByAgent = Object.create(null);
     var selectedFiles = [];
     var isSpeaking = false;
     var currentAudioPlayer = null;
@@ -1163,15 +1171,29 @@
     function activeSession() {
       var found = sessions.filter(function (session) { return session.id === activeSessionId; })[0];
       if (!found) {
-        found = sessions[0] || createMobileSession([], "محادثة جديدة");
+        found = sessions[0] || createMobileSession([], "محادثة جديدة", activeAgentId);
         sessions = sessions.length ? sessions : [found];
         activeSessionId = found.id;
       }
       return found;
     }
 
+    function findAgent(agentId) {
+      return agents.filter(function (agent) { return agent.id === agentId; })[0] || null;
+    }
+
+    function activeAgent() {
+      var agent = findAgent(activeAgentId) || findAgent(window.HermesMobileAgents.DEFAULT_AGENT_ID);
+      if (agent) {
+        activeAgentId = agent.id;
+        return agent;
+      }
+      return { id: window.HermesMobileAgents.DEFAULT_AGENT_ID, name: "Hermes", description: "الوكيل العام", instructions: "", emoji: "🤖" };
+    }
+
     function persistActiveSession() {
       var session = activeSession();
+      session.agentId = activeAgentId;
       session.messages = messages.slice(-40);
       session.updatedAt = Date.now();
       var firstUser = messages.filter(function (message) { return message.role === "user" && message.content; })[0];
@@ -1280,6 +1302,8 @@
     }
 
     function refreshHeader() {
+      var title = document.querySelector("#hermes-mobile-title strong");
+      if (title) title.textContent = activeAgent().name || "Hermes";
       if (modelStatus.checked && !modelStatus.hasApiKey) {
         subtitle.textContent = "يلزم إعداد النموذج";
         return;
@@ -1546,7 +1570,8 @@
         visible.map(function (session) {
           var active = session.id === activeSessionId;
           var lastMessage = session.messages && session.messages.length ? session.messages[session.messages.length - 1].content : "لا توجد رسائل بعد";
-          return "<div class=\"hermes-mobile-drawer-session" + (active ? " active" : "") + "\"><button class=\"hermes-mobile-drawer-session-main\" type=\"button\" data-action=\"switch-session\" data-id=\"" + escapeHtml(session.id) + "\"><strong>" + escapeHtml(session.title || "محادثة جديدة") + "</strong><small>" + escapeHtml(lastMessage) + "</small></button><button class=\"hermes-mobile-drawer-session-delete\" type=\"button\" data-action=\"delete-session\" data-id=\"" + escapeHtml(session.id) + "\" aria-label=\"حذف المحادثة\">×</button></div>";
+          var agent = findAgent(session.agentId);
+          return "<div class=\"hermes-mobile-drawer-session" + (active ? " active" : "") + "\"><button class=\"hermes-mobile-drawer-session-main\" type=\"button\" data-action=\"switch-session\" data-id=\"" + escapeHtml(session.id) + "\"><strong>" + escapeHtml(session.title || "محادثة جديدة") + "</strong><small><span class=\"hermes-mobile-session-agent\">" + escapeHtml(agent && agent.name || "Hermes") + "</span> · " + escapeHtml(lastMessage) + "</small></button><button class=\"hermes-mobile-drawer-session-delete\" type=\"button\" data-action=\"delete-session\" data-id=\"" + escapeHtml(session.id) + "\" aria-label=\"حذف المحادثة\">×</button></div>";
         }).join("")
       ].join("") : "<div class=\"hermes-mobile-drawer-empty\">لم نعثر على محادثات مطابقة</div>";
     }
@@ -1569,7 +1594,7 @@
       if (currentView === "chat") {
         return false;
       }
-      if (currentView === "settings" || currentView === "models" || currentView === "sessions") {
+      if (currentView === "settings" || currentView === "models" || currentView === "sessions" || currentView === "agents" || currentView === "parallel") {
         switchView("chat");
         return true;
       }
@@ -2006,6 +2031,205 @@
       });
     }
 
+    function runParallelAgentTask(agent, task, attachments, job) {
+      return new Promise(function (resolve) {
+        var userTask = task || "حلّل المرفقات المرفقة.";
+        var taskAttachments = (attachments || []).filter(function (item) { return item && item.path; }).map(function (item) {
+          return { name: String(item.name || "ملف مرفق"), path: String(item.path) };
+        });
+        var fileContext = taskAttachments.map(function (item) { return formatContextRef(item.path); }).filter(Boolean).join(" ");
+        var routedTask = [userTask, fileContext].filter(Boolean).join("\n\n");
+        var session = createMobileSession([{ role: "user", content: userTask, attachments: taskAttachments }], userTask.slice(0, 24) || "مهمة متوازية", agent.id);
+        session.messages.push({ role: "assistant", content: "جارٍ بدء المهمة المتوازية…", attachments: [] });
+        sessions.unshift(session);
+        job.sessionId = session.id;
+        job.attachments = taskAttachments;
+        job.status = "running";
+        job.statusText = "جارٍ فتح جلسة مستقلة…";
+        saveMobileSessions(sessions);
+        var ws = null;
+        var sessionId = "";
+        var answer = "";
+        var reasoning = "";
+        var tools = [];
+        var settled = false;
+        var timer = 0;
+        var createId = "mobile-parallel-create-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+        var submitId = "mobile-parallel-submit-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+
+        function updateTask(final, errorText) {
+          var content = errorText
+            ? String(errorText)
+            : serializeAgentOutput({ thinking: reasoning, tools: tools, streaming: !final, answer: answer });
+          session.messages[session.messages.length - 1] = { role: "assistant", content: content, attachments: [] };
+          session.updatedAt = Date.now();
+          saveMobileSessions(sessions);
+          job.result = answer || (final && job.status === "completed" && (reasoning || tools.length) ? "اكتمل التنفيذ؛ افتح سجل محادثة الوكيل لمراجعة تفاصيل التفكير والأدوات." : "");
+          job.error = errorText || "";
+          if (currentView === "parallel") renderView();
+        }
+
+        function finish(errorText) {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timer);
+          if (errorText) {
+            job.status = "error";
+            updateTask(true, errorText);
+          } else {
+            job.status = "completed";
+            answer = String(answer || "").trim();
+            if (!answer && !reasoning && !tools.length) answer = "انتهى التنفيذ دون نص إجابة.";
+            updateTask(true, "");
+          }
+          job.statusText = "";
+          try {
+            if (ws && ws.readyState === WebSocket.OPEN) ws.close(1000, "parallel task complete");
+          } catch (error) {
+            // Ignore socket cleanup failures after the result has been saved.
+          }
+          resolve(job);
+        }
+
+        function sendRpc(id, method, params) {
+          if (!ws || ws.readyState !== WebSocket.OPEN) {
+            finish("تعذّر الاتصال بجلسة Hermes المحلية.");
+            return;
+          }
+          ws.send(JSON.stringify({ id: id, jsonrpc: "2.0", method: method, params: params || {} }));
+        }
+
+        try {
+          ws = new WebSocket(buildGatewayWebSocketUrl());
+        } catch (error) {
+          finish(arabicErrorText(error, "تعذّر فتح جلسة المهمة المتوازية."));
+          return;
+        }
+
+        timer = window.setTimeout(function () {
+          finish(answer ? "" : "انتهت مهلة المهمة المتوازية.");
+        }, 180000);
+
+        ws.onopen = function () {
+          job.statusText = "الجلسة مفتوحة؛ يجري إرسال المهمة…";
+          if (currentView === "parallel") renderView();
+          sendRpc(createId, "session.create", { close_on_disconnect: false, cols: 80, messages: [], source: "android-mobile-parallel" });
+        };
+
+        ws.onmessage = function (event) {
+          var data;
+          try {
+            data = JSON.parse(String(event.data || ""));
+          } catch (error) {
+            return;
+          }
+          if (data.method === "event") {
+            var params = data.params || {};
+            if (params.session_id && sessionId && params.session_id !== sessionId) return;
+            var payload = params.payload || {};
+            if (params.type === "reasoning.delta") {
+              reasoning = appendAgentDelta(reasoning, payload.text || "");
+            } else if (params.type === "reasoning.available") {
+              reasoning = String(payload.text || reasoning || "");
+            } else if (params.type === "message.delta") {
+              answer = appendAgentDelta(answer, payload.text || "");
+            } else if (params.type === "tool.start" || params.type === "tool.progress" || params.type === "tool.complete") {
+              var toolId = String(payload.tool_id || payload.id || payload.name || ("parallel-tool-" + tools.length));
+              var tool = tools.filter(function (item) { return item.id === toolId; })[0];
+              if (!tool) {
+                tool = { id: toolId, name: String(payload.name || "tool"), status: "running", context: "" };
+                tools.push(tool);
+              }
+              tool.name = String(payload.name || tool.name || "tool");
+              tool.context = String(payload.context || payload.preview || tool.context || "");
+              tool.status = params.type === "tool.complete" ? (payload.error ? "error" : "complete") : "running";
+              if (payload.summary) tool.summary = String(payload.summary);
+              if (payload.error) tool.error = String(payload.error);
+            } else if (params.type === "message.complete") {
+              var completeText = String(payload.text || "");
+              if (answer && normalizeDedupeText(answer) === normalizeDedupeText(completeText)) completeText = answer;
+              answer = completeText || answer;
+              reasoning = String(payload.reasoning || reasoning || "");
+              if (payload.session_key) session.backendSessionId = String(payload.session_key);
+              saveMobileSessions(sessions);
+              finish("");
+              return;
+            } else if (params.type === "error") {
+              finish(arabicErrorText(payload.message, "تعذّر تنفيذ المهمة."));
+              return;
+            }
+            updateTask(false, "");
+            return;
+          }
+          if (data.id === createId) {
+            if (data.error) {
+              finish(arabicErrorText(data.error.message, "تعذّر إنشاء جلسة مستقلة."));
+              return;
+            }
+            sessionId = data.result && data.result.session_id || "";
+            session.backendSessionId = data.result && data.result.stored_session_id || sessionId;
+            if (!sessionId) {
+              finish("لم تُرجع خدمة Hermes معرّف جلسة المهمة.");
+              return;
+            }
+            saveMobileSessions(sessions);
+            job.statusText = "ينفّذ الوكيل المهمة الآن…";
+            if (currentView === "parallel") renderView();
+            sendRpc(submitId, "prompt.submit", { session_id: sessionId, text: window.HermesMobileAgents.buildPrompt(agent, routedTask) });
+            return;
+          }
+          if (data.id === submitId && data.error) {
+            finish(arabicErrorText(data.error.message, "تعذّر إرسال المهمة إلى Hermes."));
+          }
+        };
+
+        ws.onerror = function () {
+          finish("تعذّر الاتصال بـHermes لتنفيذ المهمة.");
+        };
+        ws.onclose = function () {
+          if (!settled) finish(answer ? "" : "أُغلق اتصال Hermes قبل اكتمال المهمة.");
+        };
+      });
+    }
+
+    async function submitParallelTasks() {
+      var taskFields = view.querySelectorAll("[data-agent-task]");
+      var selected = Array.prototype.map.call(taskFields, function (field) {
+        var task = String(field.value || "").trim();
+        var agentId = field.getAttribute("data-agent-id") || "";
+        var agent = findAgent(agentId);
+        var attachments = parallelAttachments(agentId).map(function (path) {
+          return { name: String(path || "").split(/[\\/]/).pop() || "ملف مرفق", path: path };
+        });
+        return (task || attachments.length) && agent ? { agent: agent, task: task, attachments: attachments } : null;
+      }).filter(Boolean);
+      if (!selected.length) {
+        parallelError = "اكتب مهمة واحدة على الأقل لأحد الوكلاء.";
+        renderView();
+        return;
+      }
+      if (!(await ensureExternalProviderConsent())) return;
+      parallelError = "";
+      parallelJobs = selected.map(function (item) {
+        return { agentId: item.agent.id, task: item.task || "حلّل المرفقات المرفقة.", attachments: item.attachments, status: "queued", statusText: "في قائمة التشغيل…", result: "", error: "", sessionId: "" };
+      });
+      selected.forEach(function (item) {
+        delete parallelTaskDrafts[item.agent.id];
+        delete parallelAttachmentsByAgent[item.agent.id];
+      });
+      parallelRunning = true;
+      var jobs = parallelJobs.slice();
+      renderView();
+      Promise.all(jobs.map(function (job) {
+        return runParallelAgentTask(findAgent(job.agentId), job.task, job.attachments, job);
+      })).then(function () {
+        parallelRunning = false;
+        renderDrawerSessions();
+        if (currentView === "parallel") renderView();
+        setTemporarySubtitle("اكتملت المهام المتوازية.");
+      });
+    }
+
     function latestAssistantText() {
       for (var index = messages.length - 1; index >= 0; index -= 1) {
         if (messages[index].role === "assistant" && messages[index].content) {
@@ -2374,7 +2598,7 @@
         return false;
       }
       var origin = endpoint.origin;
-      var consentKey = "hermes.mobile.external-provider-consent:" + origin;
+      var consentKey = "hermes.mobile.external-provider-consent:" + origin + ":v2";
       try {
         if (window.localStorage.getItem(consentKey) === "accepted") {
           return true;
@@ -2382,7 +2606,7 @@
       } catch (error) {
         // Ask again next time if local storage is unavailable.
       }
-      var notice = "قبل المتابعة: قد يُرسل نص رسالتك وسياق المحادثة والملفات المستخدمة إلى مزوّد النموذج عبر الإنترنت (" + origin + "). راجع سياسة المزوّد؛ لن نرسل هذه الرسالة ما لم توافق. هل تريد المتابعة؟";
+      var notice = "قبل المتابعة: قد يُرسل نص رسالتك أو المهام المسندة وتعليمات الوكلاء وسياق المحادثة ومحتوى الملفات والصور التي يقرأها الوكيل إلى مزوّد النموذج عبر الإنترنت (" + origin + "). راجع سياسة المزوّد؛ لن نرسلها ما لم توافق. هل تريد المتابعة؟";
       if (!window.confirm(notice)) {
         return false;
       }
@@ -2409,6 +2633,7 @@
       });
       var fileContext = attachments.map(function (attachment) { return formatContextRef(attachment.path); }).filter(Boolean).join(" ");
       var userContent = [text, fileContext].filter(Boolean).join("\n\n");
+      var routedPrompt = window.HermesMobileAgents.buildPrompt(activeAgent(), userContent);
       var visibleContent = text || (attachments.length ? "مرفق: " + attachments.map(function (item) { return item.name; }).join("، ") : "");
       messages.push({ role: "user", content: visibleContent, attachments: attachments });
       selectedFiles = [];
@@ -2423,7 +2648,7 @@
         messages.push({ role: "assistant", content: "جارٍ الاتصال بوكيل Hermes المحلي..." });
         persistActiveSession();
         renderView();
-        await streamHermesAgentReply(userContent, assistantIndex);
+        await streamHermesAgentReply(routedPrompt, assistantIndex);
       } catch (error) {
         appendAssistant(arabicErrorText(error, "تعذّر إرسال الرسالة. تحقّق من اتصال Hermes ثم أعد المحاولة."));
       } finally {
@@ -2432,10 +2657,137 @@
       }
     }
 
+    function renderAgentsPage() {
+      var editing = agentEditorId === "new" ? null : findAgent(agentEditorId);
+      if (agentEditorId) {
+        return [
+          "<div class=\"hermes-mobile-section hermes-mobile-agents\"><div class=\"hermes-mobile-panel\"><h2>" + (editing ? "تعديل الوكيل" : "إنشاء وكيل") + "</h2><p>أدخل دورًا واضحًا وتعليمات تساعد Hermes على تنفيذ المهام الموكلة لهذا الوكيل.</p></div>",
+          "<div class=\"hermes-mobile-panel hermes-mobile-agent-editor\"><div class=\"hermes-mobile-form\">",
+          "<label>اسم الوكيل<input id=\"hermes-agent-name\" maxlength=\"48\" value=\"" + escapeHtml(editing && editing.name || "") + "\" placeholder=\"مثال: محلل البيانات\"></label>",
+          "<label>وصف مختصر<input id=\"hermes-agent-description\" maxlength=\"240\" value=\"" + escapeHtml(editing && editing.description || "") + "\" placeholder=\"ما نوع المهام التي يتولاها؟\"></label>",
+          "<label>الرمز التعبيري<input id=\"hermes-agent-emoji\" maxlength=\"8\" value=\"" + escapeHtml(editing && editing.emoji || "🤖") + "\" aria-label=\"رمز الوكيل\"></label>",
+          "<label>تعليمات هذا الوكيل<textarea id=\"hermes-agent-instructions\" maxlength=\"4000\" rows=\"6\" placeholder=\"مثال: حلّل البيانات، وضّح الافتراضات، وقدّم خلاصة قابلة للتنفيذ.\">" + escapeHtml(editing && editing.instructions || "") + "</textarea></label>",
+          "<div class=\"hermes-mobile-agent-note\">تُحفظ التعليمات محليًا، وتُرسل مع رسائلك لهذا الوكيل إلى خدمة Hermes والمزوّد المحدد في إعدادات النموذج.</div>",
+          "<div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"agent-save\">حفظ الوكيل</button><button class=\"secondary\" type=\"button\" data-action=\"agent-cancel\">إلغاء</button></div>",
+          "</div></div></div>"
+        ].join("");
+      }
+      return [
+        "<div class=\"hermes-mobile-section hermes-mobile-agents\"><div class=\"hermes-mobile-panel hermes-mobile-agents-intro\"><div><h2>الوكلاء</h2><p>أنشئ مساعدين بأدوار مختلفة، أو افتح لوحة المهام لإسناد أعمال متعددة وتشغيلها بالتوازي.</p><small>تتشارك الوكلاء محرك Hermes وإعداد النموذج، ولكل واحد تعليماته وسجل محادثاته.</small></div><button type=\"button\" data-action=\"agent-new\" aria-label=\"إنشاء وكيل\">＋</button></div>",
+        "<div class=\"hermes-mobile-agent-list\">",
+        agents.map(function (agent) {
+          var count = window.HermesMobileAgents.sessionsForAgent(sessions, agent.id).length;
+          var active = activeAgentId === agent.id;
+          var badge = agent.builtIn ? "<em>أساسي</em>" : "";
+          return "<article class=\"hermes-mobile-agent-card" + (active ? " active" : "") + "\"><div class=\"hermes-mobile-agent-avatar\">" + escapeHtml(agent.emoji || "🤖") + "</div><div class=\"hermes-mobile-agent-copy\"><strong>" + escapeHtml(agent.name) + " " + badge + "</strong><span>" + escapeHtml(agent.description || "وكيل متخصص") + "</span><small>" + count + " محادثة</small></div><div class=\"hermes-mobile-agent-actions\"><button type=\"button\" data-action=\"agent-use\" data-id=\"" + escapeHtml(agent.id) + "\">فتح</button><button class=\"secondary\" type=\"button\" data-action=\"agent-edit\" data-id=\"" + escapeHtml(agent.id) + "\">تعديل</button>" + (agent.builtIn ? "" : "<button class=\"secondary danger\" type=\"button\" data-action=\"agent-delete\" data-id=\"" + escapeHtml(agent.id) + "\">حذف</button>") + "</div></article>";
+        }).join(""),
+        "</div><div class=\"hermes-mobile-panel\"><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"view\" data-view=\"parallel\">إسناد مهام بالتوازي</button></div></div></div>"
+      ].join("");
+    }
+
+    function parallelAttachments(agentId) {
+      if (!parallelAttachmentsByAgent[agentId]) parallelAttachmentsByAgent[agentId] = [];
+      return parallelAttachmentsByAgent[agentId];
+    }
+
+    function renderParallelAttachmentList(agentId) {
+      var attachmentContainers = view.querySelectorAll("[data-agent-attachments-for]");
+      var container = null;
+      for (var index = 0; index < attachmentContainers.length; index += 1) {
+        if (attachmentContainers[index].getAttribute("data-agent-attachments-for") === agentId) {
+          container = attachmentContainers[index];
+          break;
+        }
+      }
+      if (!container) return;
+      container.innerHTML = parallelAttachments(agentId).map(function (path, index) {
+        var name = String(path || "").split(/[\\/]/).pop() || "ملف مرفق";
+        return "<span class=\"hermes-mobile-parallel-attachment\"><span>" + escapeHtml(name) + "</span><button type=\"button\" data-action=\"parallel-remove-attachment\" data-agent-id=\"" + escapeHtml(agentId) + "\" data-index=\"" + index + "\" aria-label=\"إزالة " + escapeHtml(name) + "\">×</button></span>";
+      }).join("");
+    }
+
+    async function pickParallelFiles(agentId, button) {
+      if (!findAgent(agentId) || !window.hermesDesktop || typeof window.hermesDesktop.selectPaths !== "function") {
+        setTemporarySubtitle("اختيار الملفات غير متاح على هذا الجهاز.");
+        return;
+      }
+      if (button) button.disabled = true;
+      try {
+        var paths = await window.hermesDesktop.selectPaths({ multiple: true, title: "اختيار ملفات المهمة" });
+        var target = parallelAttachments(agentId);
+        (paths || []).forEach(function (path) {
+          if (path && target.indexOf(path) === -1) target.push(path);
+        });
+        renderParallelAttachmentList(agentId);
+        if (paths && paths.length) setTemporarySubtitle("أُضيفت الملفات إلى مهمة الوكيل.");
+      } catch (error) {
+        logMobileEvent("parallel-file-pick-failed", { error: String(error && error.message || error) });
+        setTemporarySubtitle("تعذّر اختيار ملفات المهمة. أعد المحاولة.");
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+
+    async function captureParallelPhoto(agentId, button) {
+      if (!findAgent(agentId) || !window.hermesDesktop || typeof window.hermesDesktop.capturePhoto !== "function") {
+        setTemporarySubtitle("الكاميرا غير متاحة على هذا الجهاز.");
+        return;
+      }
+      if (button) button.disabled = true;
+      try {
+        var photoPath = await window.hermesDesktop.capturePhoto(120000);
+        if (photoPath) {
+          var target = parallelAttachments(agentId);
+          if (target.indexOf(photoPath) === -1) target.push(photoPath);
+          renderParallelAttachmentList(agentId);
+          setTemporarySubtitle("أُضيفت الصورة إلى مهمة الوكيل.");
+        }
+      } catch (error) {
+        var message = String(error && error.message || error);
+        logMobileEvent("parallel-camera-capture-failed", { error: message });
+        setTemporarySubtitle(message === "أُلغي التقاط الصورة." ? "أُلغيت عملية التصوير." : "تعذّر التقاط الصورة للمهمة. تحقق من توفر الكاميرا ثم أعد المحاولة.");
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+
+    function renderParallelPage() {
+      var jobMarkup = parallelJobs.map(function (job) {
+        var agent = findAgent(job.agentId);
+        var status = job.status === "completed" ? "اكتملت" : job.status === "error" ? "تعذّر التنفيذ" : "قيد التنفيذ";
+        var attachmentNames = (job.attachments || []).map(function (item) { return item.name; }).filter(Boolean);
+        var attachmentMarkup = attachmentNames.length ? "<small class=\"hermes-mobile-parallel-attachment-summary\">المرفقات: " + escapeHtml(attachmentNames.join("، ")) + "</small>" : "";
+        var body = job.result ? "<div class=\"hermes-mobile-parallel-result\">" + escapeHtml(job.result) + "</div>" : job.error ? "<div class=\"hermes-mobile-parallel-error\">" + escapeHtml(job.error) + "</div>" : "<div class=\"hermes-mobile-parallel-pending\">" + escapeHtml(job.statusText || "يتصل بالجلسة المستقلة…") + "</div>";
+        return "<article class=\"hermes-mobile-parallel-job " + escapeHtml(job.status) + "\"><div class=\"hermes-mobile-agent-avatar\">" + escapeHtml(agent && agent.emoji || "🤖") + "</div><div class=\"hermes-mobile-parallel-job-content\"><strong>" + escapeHtml(agent && agent.name || "وكيل") + " <small>" + status + "</small></strong><p>" + escapeHtml(job.task) + "</p>" + attachmentMarkup + body + "</div></article>";
+      }).join("");
+      var taskInputs = agents.map(function (agent) {
+        var agentId = escapeHtml(agent.id);
+        var task = escapeHtml(parallelTaskDrafts[agent.id] || "");
+        var attachments = parallelAttachments(agent.id).map(function (path, index) {
+          var name = String(path || "").split(/[\\/]/).pop() || "ملف مرفق";
+          return "<span class=\"hermes-mobile-parallel-attachment\"><span>" + escapeHtml(name) + "</span><button type=\"button\" data-action=\"parallel-remove-attachment\" data-agent-id=\"" + agentId + "\" data-index=\"" + index + "\" aria-label=\"إزالة " + escapeHtml(name) + "\">×</button></span>";
+        }).join("");
+        return [
+          "<div class=\"hermes-mobile-parallel-agent\"><span><b>" + escapeHtml(agent.emoji || "🤖") + "</b><strong>" + escapeHtml(agent.name) + "</strong><small>" + escapeHtml(agent.description || "وكيل متخصص") + "</small></span>",
+          "<textarea data-agent-task=\"true\" data-agent-id=\"" + agentId + "\" aria-label=\"مهمة " + escapeHtml(agent.name) + "\" rows=\"3\" placeholder=\"اكتب المهمة المسندة إلى " + escapeHtml(agent.name) + "…\"" + (parallelRunning ? " disabled" : "") + ">" + task + "</textarea>",
+          "<div class=\"hermes-mobile-parallel-attachment-actions\"><button type=\"button\" data-action=\"parallel-pick-files\" data-agent-id=\"" + agentId + "\">إرفاق ملفات</button><button type=\"button\" data-action=\"parallel-capture-photo\" data-agent-id=\"" + agentId + "\">التقاط صورة</button></div>",
+          "<div class=\"hermes-mobile-parallel-attachments\" data-agent-attachments-for=\"" + agentId + "\">" + attachments + "</div></div>"
+        ].join("");
+      }).join("");
+      return [
+        "<div class=\"hermes-mobile-section hermes-mobile-parallel\"><div class=\"hermes-mobile-panel\"><h2>مهام متوازية</h2><p>اكتب مهمة مستقلة لكل وكيل؛ يمكنك إرفاق ملفات أو التقاط صورة خاصة بكل مهمة. تُنشأ جلسة Hermes مستقلة وتُحفظ النتيجة في سجل الوكيل.</p></div>",
+        parallelError ? "<div class=\"hermes-mobile-panel hermes-mobile-parallel-error\" role=\"alert\">" + escapeHtml(parallelError) + "</div>" : "",
+        parallelRunning ? "" : "<div class=\"hermes-mobile-panel hermes-mobile-parallel-form\"><div class=\"hermes-mobile-parallel-agent-list\">" + taskInputs + "</div><div class=\"hermes-mobile-form-actions\"><button type=\"button\" data-action=\"parallel-run\">تشغيل المهام بالتوازي</button></div></div>",
+        jobMarkup ? "<div class=\"hermes-mobile-parallel-results\"><h3>نتائج التنفيذ</h3>" + jobMarkup + "</div>" : "",
+        parallelRunning ? "<div class=\"hermes-mobile-panel hermes-mobile-parallel-pending\" role=\"status\">تعمل المهام المحددة في جلسات مستقلة…</div>" : "",
+        "</div>"
+      ].join("");
+    }
+
     function renderChat() {
       var html = [
         "<div id=\"hermes-mobile-hero\">",
-        "  <div id=\"hermes-mobile-hero-title\">ماذا تريد من Hermes أن يفعل اليوم؟</div>",
+        "  <div id=\"hermes-mobile-hero-title\">ماذا تريد من " + escapeHtml(activeAgent().name) + " أن يفعل اليوم؟</div>",
         "</div>",
         "<div id=\"hermes-mobile-suggestions\">",
         "  <button class=\"hermes-mobile-suggestion\" type=\"button\" data-action=\"suggest\" data-prompt=\"نظّم المهام التي عليّ إنجازها اليوم ورتّبها حسب الأولوية.\">نظّم مهام اليوم</button>",
@@ -2458,10 +2810,13 @@
 
     function renderAssistantBubble(content) {
       var parts = parseSerializedAgentOutput(content || "");
+      var agent = activeAgent();
+      var agentLabel = "<span class=\"hermes-mobile-agent-message-label\">" + escapeHtml((agent.emoji || "🤖") + " " + agent.name) + "</span>";
       if (!parts.structured) {
-        return "<div class=\"hermes-mobile-bubble assistant\">" + escapeHtml(cleanAgentDeltaText(parts.answer || "")) + "</div>";
+        return "<div class=\"hermes-mobile-bubble assistant\">" + agentLabel + escapeHtml(cleanAgentDeltaText(parts.answer || "")) + "</div>";
       }
       var html = ["<div class=\"hermes-mobile-bubble assistant hermes-mobile-agent-output\">"];
+      html.push(agentLabel);
       if (parts.thinking) {
         var thinkingPending = parts.streaming && /^(?:正在流式生成|جارٍ إنشاء الرد)/.test(parts.thinking);
         html.push("<details class=\"hermes-mobile-reasoning-card" + (thinkingPending ? " pending" : "") + (parts.streaming ? " streaming" : "") + "\"" + (parts.streaming ? " open" : "") + "><summary>" + (parts.streaming ? "جارٍ التفكير…" : "التفكير") + "</summary>" + (thinkingPending ? "" : "<p>" + escapeHtml(parts.thinking) + "</p>") + "</details>");
@@ -2906,7 +3261,8 @@
         "<div class=\"hermes-mobile-section\">",
         "<div class=\"hermes-mobile-panel\"><h2>الخصوصية والبيانات</h2><p>ملخص واضح لمواضع حفظ بياناتك وما يحدث عند إرسال رسالة أو مرفق.</p><div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"view\" data-view=\"settings\">العودة إلى الإعدادات</button></div></div>",
         "<div class=\"hermes-mobile-panel\"><h2>الجلسات على الهاتف</h2><p>يحفظ Hermes سجل الجلسات محليًا داخل تخزين التطبيق على الهاتف. يمكنك حذف جلسة من قائمة المحادثات؛ أما النسخ التي أُرسلت إلى خدمة أو مزوّد خارجي فتخضع لإعداداته وسياسة الاحتفاظ لديه.</p></div>",
-        "<div class=\"hermes-mobile-panel\"><h2>إرسال الرسائل والمرفقات</h2><p>قبل الإرسال إلى عنوان HTTPS خارجي، يعرض التطبيق اسم المزوّد ويطلب موافقتك. إذا وافقت، يُرسل نص الرسالة ومراجع الملفات التي أرفقتها إلى المزوّد لمعالجتها؛ لا تُرسل الرسالة عند رفض الموافقة.</p></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>ملفات الوكلاء والمهام المتوازية</h2><p>تُحفظ ملفات الوكلاء وتعليماتهم محليًا. عند إرسال رسالة أو تشغيل مهمة بالتوازي، تُرسل المهمة وتعليمات الوكيل إلى خدمة Hermes، ثم إلى مزوّد النموذج الذي ضبطته. قد يرسل الوكيل محتوى الملفات والصور التي يقرأها للمزوّد؛ ولا يحدث ذلك قبل موافقتك على مزوّد HTTPS الخارجي.</p></div>",
+        "<div class=\"hermes-mobile-panel\"><h2>إرسال الرسائل والمرفقات</h2><p>قبل الإرسال إلى عنوان HTTPS خارجي، يعرض التطبيق اسم المزوّد ويطلب موافقتك. إذا وافقت، يُرسل نص الرسالة وسياقها؛ وقد يُرسل محتوى الملفات والصور التي يقرأها الوكيل لتحليلها. لا تُرسل الرسالة عند رفض الموافقة.</p></div>",
         "<div class=\"hermes-mobile-panel\"><h2>المفاتيح والتكاملات</h2><p>يُرسل مفتاح API إلى خدمة Hermes المحلية لإعداده، ولا يُحفظ كنص في واجهة الهاتف. يُحفظ رمز GitHub مشفّرًا في Android Keystore ولا يُمرّر إلى JavaScript.</p></div>",
         "</div>"
       ].join("");
@@ -2982,6 +3338,10 @@
       }).join("");
       if (currentView === "chat") {
         view.innerHTML = renderChat();
+      } else if (currentView === "agents") {
+        view.innerHTML = renderAgentsPage();
+      } else if (currentView === "parallel") {
+        view.innerHTML = renderParallelPage();
       } else if (currentView === "sessions") {
         view.innerHTML = [
           "<div class=\"hermes-mobile-section\"><div class=\"hermes-mobile-panel\"><h2>المحادثات</h2><p>إدارة محادثات الهاتف: إنشاء محادثة أو التبديل بينها أو حذفها أو مسح الحالية.</p></div>",
@@ -3039,7 +3399,7 @@
     function newSession() {
       persistActiveSession();
       closeMobileRpcListener("mobile new session");
-      var session = createMobileSession([], "محادثة جديدة");
+      var session = createMobileSession([], "محادثة جديدة", activeAgentId);
       sessions.unshift(session);
       activeSessionId = session.id;
       mobileRpcSessionId = "";
@@ -3050,6 +3410,82 @@
       switchView("chat");
     }
 
+    function openAgent(agentId) {
+      var agent = findAgent(agentId);
+      if (!agent || agent.id !== agentId) return;
+      var prior = window.HermesMobileAgents.sessionsForAgent(sessions, agent.id).sort(function (left, right) {
+        return Number(right.updatedAt || 0) - Number(left.updatedAt || 0);
+      })[0];
+      if (prior) {
+        switchSession(prior.id);
+        return;
+      }
+      activeAgentId = agent.id;
+      newSession();
+    }
+
+    function saveAgentProfile() {
+      var name = String((document.getElementById("hermes-agent-name") || {}).value || "").trim();
+      if (!name) {
+        setTemporarySubtitle("اكتب اسمًا لهذا الوكيل أولًا.");
+        return;
+      }
+      var existing = agentEditorId === "new" ? null : findAgent(agentEditorId);
+      if (agentEditorId && agentEditorId !== "new" && !existing) {
+        setTemporarySubtitle("لم يعد ملف الوكيل موجودًا؛ حدّث القائمة وحاول مجددًا.");
+        agentEditorId = "";
+        renderView();
+        return;
+      }
+      var agent = {
+        id: existing && existing.id || ("agent-" + Date.now() + "-" + Math.random().toString(16).slice(2, 8)),
+        name: name,
+        description: String((document.getElementById("hermes-agent-description") || {}).value || "").trim(),
+        emoji: String((document.getElementById("hermes-agent-emoji") || {}).value || "🤖").trim() || "🤖",
+        instructions: String((document.getElementById("hermes-agent-instructions") || {}).value || "").trim(),
+        builtIn: Boolean(existing && existing.builtIn)
+      };
+      if (existing) {
+        agents = agents.map(function (item) { return item.id === existing.id ? agent : item; });
+      } else {
+        agents.push(agent);
+      }
+      agents = window.HermesMobileAgents.normalizeAgents(agents);
+      saveMobileAgents(agents);
+      agentEditorId = "";
+      renderDrawerSessions();
+      renderView();
+      setTemporarySubtitle("تم حفظ ملف الوكيل.");
+    }
+
+    function deleteAgentProfile(agentId) {
+      var deleting = findAgent(agentId);
+      if (!deleting || deleting.id !== agentId || deleting.builtIn) return;
+      if (!window.confirm("حذف الوكيل «" + deleting.name + "»؟ ستبقى محادثاته محفوظة وتُنقل إلى Hermes، لكن سيُحذف ملفه وتعليماته.")) return;
+      persistActiveSession();
+      var deletingActive = activeAgentId === agentId;
+      if (deletingActive) closeMobileRpcListener("mobile agent removed");
+      agents = agents.filter(function (agent) { return agent.id !== agentId; });
+      delete parallelTaskDrafts[agentId];
+      delete parallelAttachmentsByAgent[agentId];
+      sessions.forEach(function (session) {
+        if (session.agentId === agentId) session.agentId = window.HermesMobileAgents.DEFAULT_AGENT_ID;
+      });
+      saveMobileAgents(agents);
+      saveMobileSessions(sessions);
+      agentEditorId = "";
+      if (deletingActive) {
+        activeAgentId = window.HermesMobileAgents.DEFAULT_AGENT_ID;
+        var fallback = window.HermesMobileAgents.sessionsForAgent(sessions, activeAgentId)[0];
+        if (fallback) switchSession(fallback.id);
+        else newSession();
+      } else {
+        renderDrawerSessions();
+        renderView();
+      }
+      setTemporarySubtitle("حُذف ملف الوكيل، ونُقلت محادثاته إلى Hermes دون حذفها.");
+    }
+
     function switchSession(id) {
       persistActiveSession();
       var session = sessions.filter(function (item) { return item.id === id; })[0];
@@ -3058,6 +3494,7 @@
       }
       closeMobileRpcListener("mobile switch session");
       activeSessionId = session.id;
+      activeAgentId = session.agentId || window.HermesMobileAgents.DEFAULT_AGENT_ID;
       mobileRpcSessionId = session.backendSessionId || "";
       messages = session.messages.slice(-40);
       selectedFiles = [];
@@ -3083,10 +3520,11 @@
       }
       sessions = sessions.filter(function (session) { return session.id !== id; });
       if (!sessions.length) {
-        sessions = [createMobileSession([], "محادثة جديدة")];
+        sessions = [createMobileSession([], "محادثة جديدة", activeAgentId)];
       }
       if (activeSessionId === id) {
         activeSessionId = sessions[0].id;
+        activeAgentId = sessions[0].agentId || window.HermesMobileAgents.DEFAULT_AGENT_ID;
         mobileRpcSessionId = sessions[0].backendSessionId || "";
         messages = sessions[0].messages.slice(-40);
       }
@@ -3163,6 +3601,23 @@
         setDrawer(false);
       } else if (action === "view") {
         switchView(target.getAttribute("data-view") || "chat");
+      } else if (action === "agent-new") {
+        agentEditorId = "new";
+        switchView("agents");
+      } else if (action === "agent-edit") {
+        agentEditorId = target.getAttribute("data-id") || "";
+        switchView("agents");
+      } else if (action === "agent-cancel") {
+        agentEditorId = "";
+        renderView();
+      } else if (action === "agent-save") {
+        saveAgentProfile();
+      } else if (action === "agent-use") {
+        openAgent(target.getAttribute("data-id") || "");
+      } else if (action === "agent-delete") {
+        deleteAgentProfile(target.getAttribute("data-id") || "");
+      } else if (action === "parallel-run") {
+        submitParallelTasks();
       } else if (action === "mobile-back") {
         handleMobileBack();
       } else if (action === "terminal") {
@@ -3585,6 +4040,14 @@
       } else if (action === "remove-attachment") {
         selectedFiles.splice(Number(target.getAttribute("data-index") || 0), 1);
         renderAttachments();
+      } else if (action === "parallel-pick-files") {
+        await pickParallelFiles(target.getAttribute("data-agent-id") || "", target);
+      } else if (action === "parallel-capture-photo") {
+        await captureParallelPhoto(target.getAttribute("data-agent-id") || "", target);
+      } else if (action === "parallel-remove-attachment") {
+        var attachmentOwner = target.getAttribute("data-agent-id") || "";
+        parallelAttachments(attachmentOwner).splice(Number(target.getAttribute("data-index") || 0), 1);
+        renderParallelAttachmentList(attachmentOwner);
       } else if (action === "pick-file") {
         setAttachmentMenu(false);
         try {
@@ -3645,6 +4108,13 @@
         switchView(target.getAttribute("data-tool") || "settings");
       }
     });
+    shell.addEventListener("input", function (event) {
+      var taskField = event.target && event.target.closest ? event.target.closest("[data-agent-task]") : null;
+      if (taskField) {
+        parallelTaskDrafts[taskField.getAttribute("data-agent-id") || ""] = String(taskField.value || "");
+      }
+    });
+
     shell.addEventListener("change", function (event) {
       var target = event.target && event.target.closest ? event.target.closest("[data-action]") : null;
       if (!target) {

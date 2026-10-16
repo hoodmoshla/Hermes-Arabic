@@ -377,7 +377,9 @@ html[lang="ar"] #root {
 
 #hermes-mobile-shell .hermes-mobile-panel,
 #hermes-mobile-shell .hermes-mobile-row,
-#hermes-mobile-shell .hermes-mobile-tool {
+#hermes-mobile-shell .hermes-mobile-tool,
+#hermes-mobile-shell .hermes-mobile-agent-card,
+#hermes-mobile-shell .hermes-mobile-parallel-job {
   color: var(--hm-text) !important;
   background: var(--hm-surface) !important;
   border-color: var(--hm-border) !important;
@@ -393,14 +395,17 @@ html[lang="ar"] #root {
 
 #hermes-mobile-shell .hermes-mobile-panel p,
 #hermes-mobile-shell .hermes-mobile-row span,
-#hermes-mobile-shell .hermes-mobile-tool span {
+#hermes-mobile-shell .hermes-mobile-tool span,
+#hermes-mobile-shell .hermes-mobile-agent-copy span,
+#hermes-mobile-shell .hermes-mobile-agent-copy small {
   color: var(--hm-muted) !important;
   line-height: 1.65;
 }
 
 #hermes-mobile-shell .hermes-mobile-form input,
 #hermes-mobile-shell .hermes-mobile-form textarea,
-#hermes-mobile-shell .hermes-mobile-form select {
+#hermes-mobile-shell .hermes-mobile-form select,
+#hermes-mobile-shell .hermes-mobile-parallel textarea {
   min-height: 44px;
   color: var(--hm-text) !important;
   background: var(--hm-surface) !important;
@@ -559,4 +564,250 @@ html[lang="ar"] #root {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+#hermes-mobile-shell .hermes-mobile-agent-message-label {
+  display: block;
+  margin: 0 0 7px;
+  color: var(--hm-primary-strong);
+  font-size: 12px;
+  font-weight: 750;
+}
+#hermes-mobile-shell .hermes-mobile-agents-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+#hermes-mobile-shell .hermes-mobile-agents-intro small {
+  display: block;
+  margin-top: 8px;
+  color: var(--hm-muted);
+  line-height: 1.6;
+}
+#hermes-mobile-shell .hermes-mobile-agents-intro > button {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--hm-primary);
+  font-size: 26px;
+}
+#hermes-mobile-shell .hermes-mobile-agent-list,
+#hermes-mobile-shell .hermes-mobile-parallel-agent-list,
+#hermes-mobile-shell .hermes-mobile-parallel-results {
+  display: grid;
+  gap: 12px;
+}
+#hermes-mobile-shell .hermes-mobile-agent-card,
+#hermes-mobile-shell .hermes-mobile-parallel-job {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--hm-border);
+  border-radius: 17px;
+  box-shadow: var(--hm-shadow);
+  color: var(--hm-text);
+  background: var(--hm-surface);
+}
+#hermes-mobile-shell .hermes-mobile-agent-card.active {
+  border-color: var(--hm-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hm-primary) 16%, transparent);
+}
+#hermes-mobile-shell .hermes-mobile-agent-avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--hm-border);
+  border-radius: 15px;
+  background: var(--hm-surface-raised);
+  font-size: 23px;
+}
+#hermes-mobile-shell .hermes-mobile-agent-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+#hermes-mobile-shell .hermes-mobile-agent-copy strong,
+#hermes-mobile-shell .hermes-mobile-parallel-job-content > strong {
+  color: var(--hm-text);
+  line-height: 1.5;
+}
+#hermes-mobile-shell .hermes-mobile-agent-copy strong em {
+  color: var(--hm-primary-strong);
+  font-size: 11px;
+  font-style: normal;
+}
+#hermes-mobile-shell .hermes-mobile-agent-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+#hermes-mobile-shell .hermes-mobile-agent-actions button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--hm-primary);
+  border-radius: 10px;
+  color: #fff;
+  background: var(--hm-primary);
+  font-weight: 700;
+}
+#hermes-mobile-shell .hermes-mobile-agent-actions button.secondary {
+  color: var(--hm-text);
+  background: var(--hm-surface-raised);
+  border-color: var(--hm-border);
+}
+#hermes-mobile-shell .hermes-mobile-agent-actions button.danger {
+  color: var(--hm-danger);
+}
+#hermes-mobile-shell .hermes-mobile-agent-editor textarea,
+#hermes-mobile-shell .hermes-mobile-parallel textarea {
+  width: 100%;
+  min-height: 82px;
+  padding: 11px 12px;
+  resize: vertical;
+  line-height: 1.6;
+}
+#hermes-mobile-shell .hermes-mobile-agent-note {
+  padding: 10px 12px;
+  color: var(--hm-muted);
+  background: var(--hm-surface-raised);
+  border-radius: 11px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+#hermes-mobile-shell .hermes-mobile-session-agent {
+  color: var(--hm-primary-strong);
+  font-weight: 700;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-agent {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--hm-border);
+  border-radius: 13px;
+  background: var(--hm-surface-raised);
+}
+#hermes-mobile-shell .hermes-mobile-parallel-agent > span {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 7px;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-agent > span b {
+  grid-row: span 2;
+  font-size: 22px;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-agent > span small {
+  color: var(--hm-muted);
+}
+#hermes-mobile-shell .hermes-mobile-parallel-results h3 {
+  margin: 4px 2px 0;
+  color: var(--hm-text);
+}
+#hermes-mobile-shell .hermes-mobile-parallel-job {
+  grid-template-columns: 42px minmax(0, 1fr);
+}
+#hermes-mobile-shell .hermes-mobile-parallel-job .hermes-mobile-agent-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 21px;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-job-content {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-job-content > strong small {
+  margin-inline-start: 6px;
+  color: var(--hm-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-job-content p {
+  margin: 0;
+  color: var(--hm-muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-result,
+#hermes-mobile-shell .hermes-mobile-parallel-error,
+#hermes-mobile-shell .hermes-mobile-parallel-pending {
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: var(--hm-surface-raised);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-result {
+  white-space: pre-wrap;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-error {
+  color: var(--hm-danger);
+}
+#hermes-mobile-shell.dark .hermes-mobile-agent-avatar,
+#hermes-mobile-shell.dark .hermes-mobile-agent-note,
+#hermes-mobile-shell.dark .hermes-mobile-parallel-agent,
+#hermes-mobile-shell.dark .hermes-mobile-parallel-result,
+#hermes-mobile-shell.dark .hermes-mobile-parallel-error,
+#hermes-mobile-shell.dark .hermes-mobile-parallel-pending {
+  background: var(--hm-surface-raised);
+  border-color: var(--hm-border);
+}
+
+#hermes-mobile-shell .hermes-mobile-parallel-attachment-actions,
+#hermes-mobile-shell .hermes-mobile-parallel-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-attachment-actions button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid var(--hm-border);
+  border-radius: 10px;
+  color: var(--hm-text);
+  background: var(--hm-surface);
+  font-size: 12px;
+  font-weight: 650;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 5px 7px 5px 10px;
+  border: 1px solid var(--hm-border);
+  border-radius: 10px;
+  color: var(--hm-text);
+  background: var(--hm-surface);
+  font-size: 12px;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-attachment > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-attachment > button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--hm-danger);
+  background: transparent;
+  font-size: 16px;
+}
+#hermes-mobile-shell .hermes-mobile-parallel-attachment-summary {
+  color: var(--hm-muted);
+  overflow-wrap: anywhere;
 }

@@ -11,7 +11,8 @@ public class ExampleUnitTest {
     }
 
     @Test
-    public void versionIsCurrentDevelopmentRelease() {
-        assertEquals("0.2.2", BuildConfig.VERSION_NAME);
+    public void versionCodeAndNameAreCurrentRelease() {
+        assertEquals(5, BuildConfig.VERSION_CODE);
+        assertEquals("0.2.3", BuildConfig.VERSION_NAME);
     }
 }
