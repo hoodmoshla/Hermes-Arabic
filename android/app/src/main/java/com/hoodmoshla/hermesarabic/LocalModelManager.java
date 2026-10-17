@@ -96,6 +96,11 @@ public final class LocalModelManager {
         }
     }
 
+    /** Work which must finish before an idle background service can be stopped. */
+    static boolean hasOngoingSetupWork() {
+        return DOWNLOADING.get() || "loading".equals(runtimeState);
+    }
+
     public static String download(String modelId) {
         if (!MODEL_ID.equals(modelId)) return errorJson("Unknown model id");
         if (!DOWNLOADING.compareAndSet(false, true)) return statusJson();
@@ -172,6 +177,18 @@ public final class LocalModelManager {
             close.get(55, TimeUnit.SECONDS);
         } catch (Exception e) {
             Log.w(TAG, "Timed out while stopping the local model runtime");
+        }
+    }
+
+    /** Release native inference resources after idle backgrounding, but keep the user's selection. */
+    static void pauseForIdleService() {
+        initializeIfNeeded();
+        if (hasOngoingSetupWork()) return;
+        try {
+            Future<?> close = EXECUTOR.submit(() -> closeRuntime(false));
+            close.get(55, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            Log.w(TAG, "Timed out while pausing the idle local model runtime");
         }
     }
 

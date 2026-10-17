@@ -22,6 +22,7 @@ _lock = threading.RLock()
 _server_thread: threading.Thread | None = None
 _server_port = 9129
 _last_error = ""
+_last_health_error = ""
 _started_at = 0.0
 _files_dir = ""
 
@@ -36,6 +37,43 @@ def _is_port_open(host: str, port: int, timeout: float = 0.25) -> bool:
             return True
     except OSError:
         return False
+
+
+def _active_task_snapshot() -> dict[str, Any]:
+    """Return a conservative count of running prompts, queued work, background prompts and subagents."""
+    try:
+        from tui_gateway import server
+
+        active = 0
+        with server._sessions_lock:
+            for session in server._sessions.values():
+                if not isinstance(session, dict) or not isinstance(session.get("running"), bool):
+                    raise ValueError("session task status is unknown")
+                if session["running"] or session.get("queued_prompt") is not None:
+                    active += 1
+        background_lock = getattr(server, "_background_tasks_lock", None)
+        background_tasks = getattr(server, "_background_tasks", None)
+        if background_lock is None or not isinstance(background_tasks, dict):
+            raise ValueError("background task registry is unavailable")
+        with background_lock:
+            for task in background_tasks.values():
+                if not isinstance(task, dict) or not isinstance(task.get("running"), bool):
+                    raise ValueError("background task status is unknown")
+                if task["running"]:
+                    active += 1
+        from tools.async_delegation import active_count as async_active_count
+        subagents = async_active_count()
+        if not isinstance(subagents, int) or isinstance(subagents, bool) or subagents < 0:
+            raise ValueError("subagent task count is invalid")
+        active += subagents
+        return {"available": True, "active_tasks": active, "error": ""}
+    except Exception as exc:
+        # An unknown task state must never be interpreted as idle by the native watchdog.
+        return {
+            "available": False,
+            "active_tasks": None,
+            "error": f"Could not inspect Hermes task state ({type(exc).__name__})",
+        }
 
 
 def _prepare_environment(files_dir: str) -> dict[str, str]:
@@ -137,7 +175,7 @@ def _run_server(host: str, port: int) -> None:
             initial_profile="",
         )
     except BaseException as exc:
-        _last_error = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))[-8000:]
+        _last_error = "".join(traceback.format_exception_only(type(exc), exc)).strip()
     finally:
         global _server_thread
         with _lock:
@@ -147,7 +185,7 @@ def _run_server(host: str, port: int) -> None:
 
 def start(files_dir: str, port: int = 9129) -> str:
     """Start Hermes backend on localhost inside the app process."""
-    global _server_thread, _server_port, _started_at, _last_error
+    global _server_thread, _server_port, _started_at, _last_error, _last_health_error
     with _lock:
         _server_port = int(port or _server_port)
         env_status = json.loads(initialize(files_dir, _server_port))
@@ -158,6 +196,7 @@ def start(files_dir: str, port: int = 9129) -> str:
             return status()
 
         _last_error = ""
+        _last_health_error = ""
         _started_at = time.time()
         _server_thread = threading.Thread(
             target=_run_server,
@@ -177,7 +216,10 @@ def start(files_dir: str, port: int = 9129) -> str:
         if not (_server_thread and _server_thread.is_alive()):
             return _json(current)
         time.sleep(0.25)
-    return status()
+    result = json.loads(status())
+    if not result.get("ok") and not result.get("error"):
+        result["error"] = "Hermes server did not become API-ready within 20 seconds"
+    return _json(result)
 
 
 def is_running() -> bool:
@@ -186,15 +228,20 @@ def is_running() -> bool:
 
 def _read_api_status() -> dict[str, Any] | None:
     """Return the live dashboard status only after its HTTP route is ready."""
+    global _last_health_error
     try:
         with urlopen(f"http://127.0.0.1:{_server_port}/api/status", timeout=1.5) as response:
             if getattr(response, "status", 200) != 200:
+                _last_health_error = f"Hermes /api/status returned HTTP {response.status}"
                 return None
             body = json.loads(response.read().decode("utf-8", errors="replace"))
         if not isinstance(body, dict) or not isinstance(body.get("version"), str) or not body["version"]:
+            _last_health_error = "Hermes /api/status returned an invalid readiness document"
             return None
+        _last_health_error = ""
         return body
-    except Exception:
+    except Exception as exc:
+        _last_health_error = f"Hermes /api/status probe failed ({type(exc).__name__})"
         return None
 
 
@@ -205,6 +252,16 @@ def status() -> str:
         body = _read_api_status() if running else None
         thread_alive = bool(_server_thread and _server_thread.is_alive())
         ready = running and thread_alive and body is not None and not _last_error
+        # Work can outlive a failed HTTP server, and an HTTP failure does not
+        # itself mean work exists. Inspect the actual registry independently.
+        tasks = _active_task_snapshot()
+        error = _last_error
+        if not error and running and not thread_alive:
+            error = "A process is listening on the Hermes port, but the Hermes server thread is not alive"
+        elif not error and running and body is None:
+            error = _last_health_error or "Hermes dashboard API is not ready"
+        elif not error and not running and _server_thread is not None and not thread_alive:
+            error = "Hermes server thread stopped before the local API became ready"
         return _json({
             "ok": ready,
             "ready": ready,
@@ -215,8 +272,11 @@ def status() -> str:
             "uptime_seconds": round(uptime, 3),
             "thread_alive": thread_alive,
             "files_dir": _files_dir,
-            "error": _last_error,
+            "error": error,
             "api_status": body,
+            "active_tasks": tasks["active_tasks"],
+            "task_state_available": tasks["available"],
+            "task_state_error": tasks["error"],
         })
 
 

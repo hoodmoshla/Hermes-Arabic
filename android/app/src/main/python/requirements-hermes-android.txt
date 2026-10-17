@@ -2,7 +2,7 @@ openai==1.39.0
 certifi
 python-dotenv
 fire
-httpx[socks]
+httpx[socks]==0.27.2
 rich
 tenacity
 PyYAML

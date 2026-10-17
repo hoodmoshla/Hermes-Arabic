@@ -7,6 +7,7 @@ import android.util.Log;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,8 +38,9 @@ public final class EmbeddedHermesRuntime {
                 PyObject value = module.callAttr(method, args);
                 return value == null ? "{}" : value.toString();
             } catch (Exception error) {
-                Log.w(TAG, "Embedded Hermes call failed: " + method + " (details withheld)");
-                return errorJson(method);
+                String detail = safeError(error);
+                Log.w(TAG, "Embedded Hermes call failed: " + method + ": " + detail);
+                return errorJson(method, detail);
             }
         }
     }
@@ -68,20 +70,16 @@ public final class EmbeddedHermesRuntime {
         nodeRuntimeReady = true;
     }
 
-    private static void configureRuntimeEnvironment(Context context, File nodeBin, File nodeLibDir, File tuiDir) {
-        try {
-            Os.setenv("HERMES_NODE", nodeBin.getAbsolutePath(), true);
-            Os.setenv("HERMES_ANDROID_NATIVE_LIB_DIR", context.getApplicationInfo().nativeLibraryDir, true);
-            Os.setenv("HERMES_ANDROID_ADB_HOME", context.getFilesDir().getAbsolutePath(), true);
-            Os.setenv("HERMES_TUI_DIR", tuiDir.getAbsolutePath(), true);
-            Os.setenv("HERMES_SKIP_NODE_BOOTSTRAP", "1", true);
-            String current = System.getenv("LD_LIBRARY_PATH");
-            String libraries = nodeLibDir.getAbsolutePath();
-            if (current != null && !current.isEmpty() && !current.contains(libraries)) libraries += ":" + current;
-            Os.setenv("LD_LIBRARY_PATH", libraries, true);
-        } catch (Exception error) {
-            Log.w(TAG, "Could not configure embedded runtime environment");
-        }
+    private static void configureRuntimeEnvironment(Context context, File nodeBin, File nodeLibDir, File tuiDir) throws Exception {
+        Os.setenv("HERMES_NODE", nodeBin.getAbsolutePath(), true);
+        Os.setenv("HERMES_ANDROID_NATIVE_LIB_DIR", context.getApplicationInfo().nativeLibraryDir, true);
+        Os.setenv("HERMES_ANDROID_ADB_HOME", context.getFilesDir().getAbsolutePath(), true);
+        Os.setenv("HERMES_TUI_DIR", tuiDir.getAbsolutePath(), true);
+        Os.setenv("HERMES_SKIP_NODE_BOOTSTRAP", "1", true);
+        String current = System.getenv("LD_LIBRARY_PATH");
+        String libraries = nodeLibDir.getAbsolutePath();
+        if (current != null && !current.isEmpty() && !current.contains(libraries)) libraries += ":" + current;
+        Os.setenv("LD_LIBRARY_PATH", libraries, true);
     }
 
     private static void copyAssetTree(Context context, String path, File target) throws Exception {
@@ -107,8 +105,22 @@ public final class EmbeddedHermesRuntime {
         if (!file.delete()) Log.w(TAG, "Could not replace a cached runtime file");
     }
 
-    private static String errorJson(String method) {
+    private static String errorJson(String method, String detail) {
         String safeMethod = method == null ? "unknown" : method.replaceAll("[^A-Za-z0-9_]", "");
-        return "{\"ok\":false,\"available\":false,\"running\":false,\"error\":\"Embedded Hermes call failed: " + safeMethod + "\"}";
+        try {
+            return new JSONObject().put("ok", false).put("available", false).put("running", false)
+                    .put("ready", false).put("method", safeMethod)
+                    .put("error", "Embedded Hermes call failed (" + safeMethod + "): " + detail).toString();
+        } catch (Exception ignored) {
+            return "{\"ok\":false,\"available\":false,\"running\":false,\"ready\":false,\"error\":\"Embedded Hermes call failed\"}";
+        }
+    }
+
+    private static String safeError(Throwable error) {
+        String message = error == null ? "Unknown error" : error.getMessage();
+        String text = error == null ? "Unknown error" : error.getClass().getSimpleName();
+        if (message != null && !message.trim().isEmpty()) text += ": " + message.trim();
+        return text.replaceAll("(?i)(api[_-]?key|authorization|bearer)(\\s*[=: ]\\s*)[^\\s,;]+", "$1$2[redacted]")
+                .replaceAll("[\\r\\n\\t]+", " ");
     }
 }

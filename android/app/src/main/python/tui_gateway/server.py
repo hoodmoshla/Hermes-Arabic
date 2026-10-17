@@ -135,6 +135,8 @@ _db_error: str | None = None
 _stdout_lock = threading.Lock()
 _cfg_lock = threading.Lock()
 _sessions_lock = threading.RLock()  # reentrant: _close_session_by_id may run under callers that already hold it
+_background_tasks_lock = threading.RLock()
+_background_tasks: dict[str, dict] = {}
 _prompt_lock = threading.Lock()
 _cfg_cache: dict | None = None
 _cfg_mtime: float | None = None
@@ -9588,6 +9590,8 @@ def _(rid, params: dict) -> dict:
     if not text:
         return _err(rid, 4012, "text required")
     task_id = f"bg_{uuid.uuid4().hex[:6]}"
+    with _background_tasks_lock:
+        _background_tasks[task_id] = {"session_id": str(parent), "running": True}
 
     def run():
         session_tokens = _set_session_context(task_id, cwd=_session_cwd(session))
@@ -9620,8 +9624,15 @@ def _(rid, params: dict) -> dict:
             )
         finally:
             _clear_session_context(session_tokens)
+            with _background_tasks_lock:
+                _background_tasks.pop(task_id, None)
 
-    threading.Thread(target=run, daemon=True).start()
+    try:
+        threading.Thread(target=run, daemon=True, name=f"hermes-background-{task_id}").start()
+    except Exception:
+        with _background_tasks_lock:
+            _background_tasks.pop(task_id, None)
+        raise
     return _ok(rid, {"task_id": task_id})
 
 

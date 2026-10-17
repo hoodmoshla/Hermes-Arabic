@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.graphics.Color;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
@@ -40,6 +41,7 @@ import android.util.Base64;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.BridgeWebViewClient;
@@ -282,18 +284,16 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
+        HermesForegroundService.setActivityInForeground(true);
+        HermesForegroundService.start(this);
         GitHubConnector.setForegroundActivity(this);
     }
 
     @Override
     public void onStop() {
         GitHubConnector.setForegroundActivity(null);
+        HermesForegroundService.setActivityInForeground(false);
         super.onStop();
-    }
-
-    @Override
-    public void onBackPressed() {
-        handleAppBackNavigation(() -> super.onBackPressed());
     }
 
     private void installBackNavigationHandler() {
@@ -379,13 +379,22 @@ public class MainActivity extends BridgeActivity {
         });
         webView.setInitialScale(0);
 
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            getWindow().setStatusBarContrastEnforced(false);
+            getWindow().setNavigationBarContrastEnforced(false);
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(webView, (view, insets) -> {
+            int systemBarsType = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
             Insets systemBars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
+                systemBarsType
             );
             safeTopPx = systemBars.top;
             safeRightPx = systemBars.right;
-            safeBottomPx = systemBars.bottom;
+            safeBottomPx = insets.isVisible(WindowInsetsCompat.Type.ime()) ? 0 : systemBars.bottom;
             safeLeftPx = systemBars.left;
             pushSafeAreaInsetsToPage(webView);
             return insets;
@@ -549,7 +558,8 @@ public class MainActivity extends BridgeActivity {
             "      style.textContent = `",
             "html.hermes-android-app{--hermes-safe-top:0px;--hermes-safe-right:0px;--hermes-safe-bottom:0px;--hermes-safe-left:0px;--hermes-mobile-bottom-gap:max(36px,calc(var(--hermes-safe-bottom,0px) + 18px));overscroll-behavior:none;background:#10141b;}",
             "html.hermes-android-app,html.hermes-android-app body{width:var(--hermes-app-width,100vw)!important;height:var(--hermes-app-height,100dvh)!important;max-width:100vw!important;max-height:100dvh!important;overflow:hidden!important;}",
-            "html.hermes-android-app body{position:fixed!important;inset:0!important;margin:0!important;padding:var(--hermes-safe-top,0px) var(--hermes-safe-right,0px) var(--hermes-mobile-bottom-gap,10px) var(--hermes-safe-left,0px)!important;box-sizing:border-box!important;background:#10141b;-webkit-tap-highlight-color:transparent;}",
+            "html.hermes-android-app body{position:fixed!important;top:var(--hermes-viewport-offset-top,0px)!important;right:0!important;bottom:auto!important;left:0!important;margin:0!important;padding:var(--hermes-safe-top,0px) var(--hermes-safe-right,0px) var(--hermes-mobile-bottom-gap,10px) var(--hermes-safe-left,0px)!important;box-sizing:border-box!important;background:#10141b;-webkit-tap-highlight-color:transparent;}",
+            "html.hermes-android-app #hermes-mobile-shell{inset:var(--hermes-viewport-offset-top,0px) 0 auto 0!important;height:var(--hermes-app-height,100dvh)!important;max-height:var(--hermes-app-height,100dvh)!important;}",
             "html.hermes-android-app #root{width:100%!important;height:calc(var(--hermes-app-height,100dvh) - var(--hermes-safe-top,0px) - var(--hermes-mobile-bottom-gap,10px))!important;max-width:100vw!important;overflow:hidden!important;}",
             "html.hermes-android-app #root>div{height:100%!important;min-height:0!important;max-height:100%!important;}",
             "html.hermes-android-app input,html.hermes-android-app textarea,html.hermes-android-app select{font-size:16px!important;}",
@@ -645,8 +655,10 @@ public class MainActivity extends BridgeActivity {
             "      var vv = window.visualViewport;",
             "      var width = Math.max(1, Math.round((vv && vv.width) || window.innerWidth || doc.clientWidth || screen.width));",
             "      var height = Math.max(1, Math.round((vv && vv.height) || window.innerHeight || doc.clientHeight || screen.height));",
+            "      var offsetTop = Math.max(0, Math.round((vv && vv.offsetTop) || 0));",
             "      doc.style.setProperty('--hermes-app-width', width + 'px');",
             "      doc.style.setProperty('--hermes-app-height', height + 'px');",
+            "      doc.style.setProperty('--hermes-viewport-offset-top', offsetTop + 'px');",
             "    }",
             "    function applyHermesMobileChromeTweaks() {",
             "      if (window.innerWidth > 640) return;",
@@ -2130,6 +2142,7 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.Q)
     private String copyPickedUriToMediaStore(ContentResolver resolver, Uri source, String safeName) throws Exception {
         String mime = resolver.getType(source);
         if (mime == null || mime.trim().isEmpty()) {

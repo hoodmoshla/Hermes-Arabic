@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 import threading
+import types
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -42,11 +44,15 @@ class RepositoryInvariantTests(unittest.TestCase):
             patch.object(android_backend, "_is_port_open", return_value=True),
             patch.object(android_backend, "_read_api_status", return_value=None),
             patch.object(android_backend, "_last_error", ""),
+            patch.object(android_backend, "_last_health_error", "API route not ready"),
+            patch.object(android_backend, "_server_thread", threading.current_thread()),
+            patch.object(android_backend, "_active_task_snapshot", return_value={"available": False, "active_tasks": None, "error": "not ready"}),
         ):
             result = json.loads(android_backend.status())
         self.assertTrue(result["running"])
         self.assertFalse(result["ready"])
         self.assertFalse(result["ok"])
+        self.assertIn("API route not ready", result["error"])
 
     def test_backend_status_reports_ready_after_live_api_response(self) -> None:
         with (
@@ -54,10 +60,75 @@ class RepositoryInvariantTests(unittest.TestCase):
             patch.object(android_backend, "_read_api_status", return_value={"version": "test"}),
             patch.object(android_backend, "_server_thread", threading.current_thread()),
             patch.object(android_backend, "_last_error", ""),
+            patch.object(android_backend, "_active_task_snapshot", return_value={"available": True, "active_tasks": 2, "error": ""}),
         ):
             result = json.loads(android_backend.status())
         self.assertTrue(result["ready"])
         self.assertTrue(result["ok"])
+        self.assertEqual(2, result["active_tasks"])
+        self.assertTrue(result["task_state_available"])
+
+    def test_work_registry_is_available_even_when_http_server_is_down(self) -> None:
+        for count in (0, 2):
+            with (
+                self.subTest(active_tasks=count),
+                patch.object(android_backend, "_is_port_open", return_value=False),
+                patch.object(android_backend, "_server_thread", None),
+                patch.object(android_backend, "_active_task_snapshot", return_value={"available": True, "active_tasks": count, "error": ""}),
+            ):
+                result = json.loads(android_backend.status())
+                self.assertFalse(result["ready"])
+                self.assertTrue(result["task_state_available"])
+                self.assertEqual(count, result["active_tasks"])
+
+    def test_backend_task_snapshot_counts_parallel_sessions_background_and_subagents(self) -> None:
+        module = types.ModuleType("tui_gateway.server")
+        module._sessions_lock = threading.RLock()
+        module._sessions = {
+            "one": {"running": True},
+            "two": {"running": True},
+            "queued": {"running": False, "queued_prompt": {"text": "later"}},
+            "idle": {"running": False},
+        }
+        module._background_tasks_lock = threading.RLock()
+        module._background_tasks = {"bg_a": {"running": True}}
+        tools = types.ModuleType("tools")
+        tools.__path__ = []
+        delegation = types.ModuleType("tools.async_delegation")
+        delegation.active_count = lambda: 2
+        gateway = types.ModuleType("tui_gateway")
+        gateway.__path__ = []
+        gateway.server = module
+        with patch.dict(sys.modules, {
+            "tui_gateway": gateway,
+            "tui_gateway.server": module,
+            "tools": tools,
+            "tools.async_delegation": delegation,
+        }):
+            result = android_backend._active_task_snapshot()
+        self.assertEqual({"available": True, "active_tasks": 6, "error": ""}, result)
+
+    def test_backend_task_snapshot_fails_closed_on_unknown_session_status(self) -> None:
+        module = types.ModuleType("tui_gateway.server")
+        module._sessions_lock = threading.RLock()
+        module._sessions = {"unknown": {}}
+        module._background_tasks_lock = threading.RLock()
+        module._background_tasks = {}
+        gateway = types.ModuleType("tui_gateway")
+        gateway.__path__ = []
+        gateway.server = module
+        with patch.dict(sys.modules, {"tui_gateway": gateway, "tui_gateway.server": module}):
+            result = android_backend._active_task_snapshot()
+        self.assertFalse(result["available"])
+        self.assertIsNone(result["active_tasks"])
+        self.assertIn("ValueError", result["error"])
+
+    def test_backend_task_snapshot_fails_closed_when_state_is_unknown(self) -> None:
+        with patch("builtins.__import__", side_effect=ImportError("not available")):
+            result = android_backend._active_task_snapshot()
+        self.assertFalse(result["available"])
+        self.assertIsNone(result["active_tasks"])
+        self.assertIn("ImportError", result["error"])
 
     def test_backend_rejects_health_response_without_its_server_thread(self) -> None:
         with (
@@ -105,7 +176,8 @@ class RepositoryInvariantTests(unittest.TestCase):
         self.assertIn('android:usesCleartextTraffic="false"', manifest)
         self.assertIn('android:foregroundServiceType="specialUse"', manifest)
         self.assertIn('android.permission.FOREGROUND_SERVICE_SPECIAL_USE', manifest)
-        self.assertIn('android.intent.action.BOOT_COMPLETED', manifest)
+        self.assertNotIn('android.intent.action.BOOT_COMPLETED', manifest)
+        self.assertNotIn('android.permission.RECEIVE_BOOT_COMPLETED', manifest)
         self.assertIn('<base-config cleartextTrafficPermitted="false"', network)
         self.assertIn('<domain includeSubdomains="false">127.0.0.1</domain>', network)
         self.assertIn('document.documentElement.dir = "rtl"', locale)
@@ -142,7 +214,11 @@ class RepositoryInvariantTests(unittest.TestCase):
         self.assertIn("LocalModelManager.resumeSelected(this)", service)
         self.assertIn("HermesForegroundService", service)
         self.assertIn("ResumableModelDownloader.sha256(file)", manager)
-        self.assertIn("intent == null && !isEnabledAfterBoot(this)", service)
+        self.assertIn("START_NOT_STICKY", service)
+        self.assertNotIn("START_STICKY", service)
+        self.assertIn("checkIdleRuntime", service)
+        self.assertIn("task_state_available", service)
+        self.assertIn("HermesForegroundService.setActivityInForeground(true)", (ROOT / "android/app/src/main/java/com/hoodmoshla/hermesarabic/MainActivity.java").read_text(encoding="utf-8"))
 
     def test_github_writes_require_native_approval_and_keep_token_native(self) -> None:
         root = ROOT / "android/app/src/main/java/com/hoodmoshla/hermesarabic"
@@ -199,6 +275,22 @@ class RepositoryInvariantTests(unittest.TestCase):
         self.assertIn("window.hermesDesktop.selectPaths", bridge)
         self.assertIn("Intent.ACTION_OPEN_DOCUMENT", activity)
         self.assertIn("requestCode != REQ_PICK_FILES", activity)
+
+    def test_android_edge_to_edge_safe_areas_and_ime_resize(self) -> None:
+        activity = (ROOT / "android/app/src/main/java/com/hoodmoshla/hermesarabic/MainActivity.java").read_text(encoding="utf-8")
+        manifest = (ROOT / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
+        css = (ROOT / "www/hermes-arabic-mobile.css").read_text(encoding="utf-8")
+        bridge = (ROOT / "www/hermes-mobile-bridge.js").read_text(encoding="utf-8")
+        self.assertIn("WindowCompat.setDecorFitsSystemWindows(getWindow(), false)", activity)
+        self.assertIn("WindowInsetsCompat.Type.displayCutout()", activity)
+        self.assertIn("insets.isVisible(WindowInsetsCompat.Type.ime())", activity)
+        self.assertIn('android:windowSoftInputMode="adjustResize"', manifest)
+        self.assertIn("--hermes-viewport-offset-top", activity)
+        self.assertIn("var(--hermes-safe-top, env(safe-area-inset-top, 0px))", css)
+        self.assertIn("var(--hermes-safe-bottom, env(safe-area-inset-bottom, 0px))", css)
+        self.assertIn("var(--hermes-safe-top,0px)", bridge)
+        self.assertIn("var(--hermes-safe-bottom,0px)", bridge)
+        self.assertIn("var(--hermes-app-height,100dvh)", bridge)
 
 
 if __name__ == "__main__":

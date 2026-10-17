@@ -12,7 +12,7 @@ public class ExampleUnitTest {
 
     @Test
     public void versionCodeAndNameMatchLocalCandidate() {
-        assertEquals(6, BuildConfig.VERSION_CODE);
-        assertEquals("0.2.4", BuildConfig.VERSION_NAME);
+        assertEquals(7, BuildConfig.VERSION_CODE);
+        assertEquals("0.2.5", BuildConfig.VERSION_NAME);
     }
 }

@@ -27,6 +27,11 @@ def check() -> list[str]:
         errors.append("Expected the single arm64-v8a ABI filter")
     if "android.permission.INTERNET" not in manifest:
         errors.append("INTERNET permission missing")
+    if "BOOT_COMPLETED" in manifest or "RECEIVE_BOOT_COMPLETED" in manifest:
+        errors.append("Hermes runtime must not autostart during device boot")
+    service = (ROOT / "android/app/src/main/java/com/hoodmoshla/hermesarabic/HermesForegroundService.java").read_text(encoding="utf-8")
+    if "START_STICKY" in service or "checkIdleRuntime" not in service or "task_state_available" not in service:
+        errors.append("Foreground runtime must use the native fail-closed idle watchdog and START_NOT_STICKY")
     if 'android:allowBackup="false"' not in manifest:
         errors.append("Automatic backup must be disabled for app-private credentials")
     network_config = ROOT / "android/app/src/main/res/xml/network_security_config.xml"

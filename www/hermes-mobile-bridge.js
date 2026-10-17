@@ -15,7 +15,6 @@
   var MOBILE_READY_KEY = "hermes.mobile.ready.v1";
   var MOBILE_TTS_ENABLED_KEY = "hermes.mobile.tts.enabled";
   var DEFAULT_CHAT_ENDPOINT = "https://api.openai.com/v1";
-  var DEFAULT_CHAT_MODEL = "gpt-5.5";
   var BOOT_CHECK_VERSION = "Hermes Mobile v2026.07.03";
   var embeddedDashboardBaseUrl = "";
   var embeddedTerminalUrl = "";
@@ -231,9 +230,9 @@
       "#hermes-android-boot-bar{height:3px;border-radius:999px;background:#e5e7eb;overflow:hidden;}",
       "#hermes-android-boot-bar[hidden]{display:none!important;}",
       "#hermes-android-boot-bar>span{display:block;height:100%;width:38%;border-radius:inherit;background:#111827;animation:hermesAndroidBoot 1.2s ease-in-out infinite;}",
-      "#hermes-android-boot-overlay.hermes-mobile-chat-mode{display:block;position:fixed;inset:0;width:100vw;max-width:none;background:#f5f7fb;overflow:hidden;}",
-      "#hermes-mobile-chat{height:100vh;height:100dvh;display:grid;grid-template-rows:auto 1fr auto;background:#f5f7fb;color:#111827;}",
-      "#hermes-mobile-chat-header{display:flex;align-items:center;gap:12px;padding:16px 16px 12px;border-bottom:1px solid #e5eaf0;background:rgba(245,247,251,.96);}",
+      "#hermes-android-boot-overlay.hermes-mobile-chat-mode{display:block;position:fixed;top:var(--hermes-viewport-offset-top,0px);right:0;bottom:auto;left:0;width:100vw;height:var(--hermes-app-height,100dvh);max-width:none;background:#f5f7fb;overflow:hidden;}",
+      "#hermes-mobile-chat{height:var(--hermes-app-height,100dvh);display:grid;grid-template-rows:auto 1fr auto;background:#f5f7fb;color:#111827;}",
+      "#hermes-mobile-chat-header{display:flex;align-items:center;gap:12px;padding:calc(16px + var(--hermes-safe-top,0px)) calc(16px + var(--hermes-safe-right,0px)) 12px calc(16px + var(--hermes-safe-left,0px));border-bottom:1px solid #e5eaf0;background:rgba(245,247,251,.96);}",
       "#hermes-mobile-chat-mark{width:38px;height:38px;border-radius:11px;background:#111827;color:#fff;display:grid;place-items:center;font-size:19px;font-weight:800;box-shadow:0 10px 24px rgba(15,23,42,.16);}",
       "#hermes-mobile-chat-title{min-width:0;flex:1;}#hermes-mobile-chat-title strong{display:block;font-size:18px;line-height:1.2;}#hermes-mobile-chat-title span{display:block;margin-top:2px;font-size:12px;color:#667085;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
       "#hermes-mobile-chat-settings{border:0;border-radius:10px;background:#e8edf3;color:#111827;font-size:14px;font-weight:700;min-height:38px;padding:0 12px;}",
@@ -242,11 +241,11 @@
       ".hermes-mobile-message.user{align-self:flex-end;background:#111827;color:#fff;border-bottom-right-radius:5px;}",
       ".hermes-mobile-message.assistant{align-self:flex-start;background:#fff;color:#111827;border:1px solid #e1e7ef;border-bottom-left-radius:5px;}",
       ".hermes-mobile-message.system{align-self:center;max-width:96%;background:#eef7f5;color:#0f766e;border:1px solid #cde8e2;text-align:center;font-size:13px;box-shadow:none;}",
-      "#hermes-mobile-chat-composer{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 16px 16px;border-top:1px solid #e5eaf0;background:rgba(245,247,251,.98);}",
+      "#hermes-mobile-chat-composer{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px calc(16px + var(--hermes-safe-right,0px)) calc(16px + var(--hermes-safe-bottom,0px)) calc(16px + var(--hermes-safe-left,0px));border-top:1px solid #e5eaf0;background:rgba(245,247,251,.98);}",
       "#hermes-mobile-chat-input{width:100%;max-height:132px;min-height:46px;resize:none;border:1px solid #d9e1ea;border-radius:12px;background:#fff;color:#111827;padding:11px 12px;font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;outline:none;}",
       "#hermes-mobile-chat-send{border:0;border-radius:12px;background:#111827;color:#fff;font-size:15px;font-weight:750;min-width:72px;padding:0 16px;}",
       "#hermes-mobile-chat-send:disabled{opacity:.48;}",
-      "#hermes-mobile-chat-config{position:fixed;inset:auto 12px 12px 12px;z-index:2147483641;background:#fff;border:1px solid #dbe3ec;border-radius:16px;padding:14px;box-shadow:0 24px 60px rgba(15,23,42,.2);display:grid;gap:10px;}",
+      "#hermes-mobile-chat-config{position:fixed;inset:auto 12px calc(12px + var(--hermes-safe-bottom,0px)) 12px;z-index:2147483641;background:#fff;border:1px solid #dbe3ec;border-radius:16px;padding:14px;box-shadow:0 24px 60px rgba(15,23,42,.2);display:grid;gap:10px;}",
       "#hermes-mobile-chat-config[hidden]{display:none!important;}#hermes-mobile-chat-config h2{margin:0;font-size:16px;line-height:1.3;}#hermes-mobile-chat-config label{display:grid;gap:5px;font-size:12px;color:#667085;font-weight:700;}",
       "#hermes-mobile-chat-config input{min-height:42px;border:1px solid #d9e1ea;border-radius:10px;padding:0 11px;font-size:14px;color:#111827;background:#fff;outline:none;}",
       "#hermes-mobile-chat-config-actions{display:flex;gap:8px;justify-content:flex-end;}#hermes-mobile-chat-config-actions button{border:0;border-radius:10px;min-height:40px;padding:0 13px;font-weight:750;background:#111827;color:#fff;}#hermes-mobile-chat-config-actions button.secondary{background:#e8edf3;color:#111827;}",
@@ -266,7 +265,7 @@
       "#hermes-mobile-composer{position:sticky;bottom:0;display:grid;grid-template-columns:auto auto 1fr auto;gap:8px;padding:10px 0 0;background:linear-gradient(180deg,rgba(244,247,251,0),#f4f7fb 30%);}#hermes-mobile-composer button{border:0;border-radius:999px;min-height:46px;min-width:46px;padding:0 12px;background:rgba(255,255,255,.82);color:#172033;font-weight:800;font-size:15px;box-shadow:0 10px 24px rgba(31,41,55,.08);}#hermes-mobile-composer button.primary{background:linear-gradient(135deg,#4285f4,#9b72cb);color:#fff;min-width:62px;}#hermes-mobile-input{min-width:0;min-height:46px;max-height:120px;border:1px solid rgba(210,219,232,.95);border-radius:24px;background:rgba(255,255,255,.9);color:#172033;padding:11px 14px;font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;resize:none;outline:none;box-shadow:0 10px 24px rgba(31,41,55,.06);}",
       ".hermes-mobile-list{display:grid;gap:9px;min-width:0;}.hermes-mobile-row{width:100%;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;background:rgba(255,255,255,.78);border:1px solid rgba(218,225,235,.88);border-radius:16px;padding:12px;box-shadow:0 10px 24px rgba(31,41,55,.05);overflow:hidden;}.hermes-mobile-row-main{min-width:0;overflow:hidden;}.hermes-mobile-row-main strong{display:block;font-size:14px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}.hermes-mobile-row-main span{display:block;margin-top:4px;color:#667085;font-size:12px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}.hermes-mobile-row-actions{display:grid;gap:7px;grid-auto-flow:row;justify-items:end;}.hermes-mobile-row button,.hermes-mobile-panel button{border:0;border-radius:999px;min-height:38px;padding:0 14px;background:#1f2937;color:#fff;font-weight:760;white-space:nowrap;}.hermes-mobile-row button.secondary,.hermes-mobile-panel button.secondary{background:#eef2f7;color:#172033;}@media(max-width:380px){.hermes-mobile-row{grid-template-columns:1fr;}.hermes-mobile-row-actions{grid-auto-flow:column;justify-content:end;}}",
       ".hermes-mobile-form{display:grid;gap:10px;}.hermes-mobile-form label{display:grid;gap:5px;color:#667085;font-size:12px;font-weight:750;}.hermes-mobile-form input{min-height:44px;border:1px solid rgba(210,219,232,.95);border-radius:14px;padding:0 12px;background:rgba(255,255,255,.88);color:#172033;font-size:14px;outline:none;}.hermes-mobile-form-actions{display:flex;gap:8px;justify-content:flex-end;}",
-      "#hermes-mobile-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px 8px calc(7px + env(safe-area-inset-bottom));background:rgba(255,255,255,.84);border-top:1px solid rgba(218,225,235,.88);box-shadow:0 -14px 32px rgba(31,41,55,.08);backdrop-filter:blur(18px);}#hermes-mobile-nav button{border:0;border-radius:999px;background:transparent;color:#667085;min-height:48px;display:grid;place-items:center;font-size:11px;font-weight:760;}#hermes-mobile-nav button span{display:block;font-size:18px;line-height:1;}#hermes-mobile-nav button.active{background:#eef4ff;color:#2563eb;}",
+      "#hermes-mobile-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px 8px calc(7px + var(--hermes-safe-bottom,env(safe-area-inset-bottom,0px)));background:rgba(255,255,255,.84);border-top:1px solid rgba(218,225,235,.88);box-shadow:0 -14px 32px rgba(31,41,55,.08);backdrop-filter:blur(18px);}#hermes-mobile-nav button{border:0;border-radius:999px;background:transparent;color:#667085;min-height:48px;display:grid;place-items:center;font-size:11px;font-weight:760;}#hermes-mobile-nav button span{display:block;font-size:18px;line-height:1;}#hermes-mobile-nav button.active{background:#eef4ff;color:#2563eb;}",
       "@keyframes hermesGeminiFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}#hermes-mobile-logo{animation:hermesGeminiFloat 3.4s ease-in-out infinite;}",
       "#hermes-mobile-shell.gemini{grid-template-rows:auto 1fr auto;}",
       "#hermes-mobile-progress{position:absolute;inset:0;z-index:5;display:grid;place-items:center;background:radial-gradient(circle at 20% 12%,rgba(66,133,244,.16),transparent 34%),linear-gradient(180deg,#fbfcff,#f4f7fb);}",
@@ -385,24 +384,44 @@
     window.location.href = embeddedTerminalUrl || ("http://127.0.0.1:9129/chat?fresh=1&channel=android-mobile-terminal&locale=" + mobileDashboardLocale());
   }
 
+  function sanitizeBootDiagnostic(value) {
+    return String(value || "")
+      .replace(/(api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)(\s*[=:]\s*)[^\s,;]+/gi, "$1$2[مخفي]")
+      .replace(/Bearer\s+[^\s,;]+/gi, "Bearer [مخفي]")
+      .replace(/https?:\/\/[^\s/@]+:[^\s/@]+@/gi, "[عنوان خدمة مخفي]@")
+      .replace(/(?:\/data\/(?:user|data)|\/Users\/)[^\s,;]*/g, "[مسار خاص]")
+      .slice(0, 1200);
+  }
+
+  function isEmbeddedServiceReady(result) {
+    return Boolean(result && result.ok === true && result.ready === true && result.running === true &&
+      result.api_status && typeof result.api_status.version === "string" && result.api_status.version.trim());
+  }
+
+  function isModelReady(status) {
+    return Boolean(status && status.configured === true && String(status.model || "").trim());
+  }
+
   function formatEmbeddedStatus(result) {
     if (!result || typeof result !== "object") {
       return "لم تُعِد الخدمة المحلية حالتها. أعد المحاولة أو راجع سجل التطبيق.";
     }
     var lines = [];
     lines.push("الخدمة المحلية: " + (result.running ? "قيد التشغيل" : "متوقفة"));
+    lines.push("جاهزية واجهة Hermes: " + (isEmbeddedServiceReady(result) ? "جاهزة" : "غير مؤكدة"));
     if (result.url) {
       lines.push("عنوان الخدمة: " + result.url);
     }
     if (result.uptime_seconds != null) {
       lines.push("مدة التشغيل: " + result.uptime_seconds + " ثانية");
     }
-    if (result.api_status) {
-      lines.push("واجهة الخدمة تستجيب.");
+    if (result.api_status && result.api_status.version) {
+      lines.push("إصدار Hermes: " + sanitizeBootDiagnostic(result.api_status.version));
     }
     if (result.error) {
-      console.warn("[Hermes Android] Embedded service startup detail:", result.error);
-      lines.push("تعذّر تشغيل الخدمة المحلية. راجع سجل التطبيق أو أعد المحاولة.");
+      var detail = sanitizeBootDiagnostic(result.error);
+      console.warn("[Hermes Android] Embedded service startup detail:", detail);
+      lines.push("السبب: " + detail);
     }
     return lines.join("\n");
   }
@@ -444,17 +463,8 @@
   }
 
   function loadMobileChatConfig() {
-    try {
-      var raw = window.localStorage && window.localStorage.getItem(MOBILE_CHAT_CONFIG_KEY);
-      var parsed = raw ? JSON.parse(raw) : {};
-      return {
-        apiKey: "",
-        baseUrl: parsed.baseUrl || DEFAULT_CHAT_ENDPOINT,
-        model: parsed.model || DEFAULT_CHAT_MODEL
-      };
-    } catch (error) {
-      return { apiKey: "", baseUrl: DEFAULT_CHAT_ENDPOINT, model: DEFAULT_CHAT_MODEL };
-    }
+    // localStorage is only a non-secret display cache; the Hermes API is authoritative.
+    return { apiKey: "", baseUrl: "", model: "" };
   }
 
   function saveMobileChatConfig(config) {
@@ -1098,7 +1108,7 @@
     ].join("");
 
     var config = loadMobileChatConfig();
-    var modelStatus = { checked: false, hasApiKey: false, model: config.model || "" };
+    var modelStatus = { checked: false, configured: false, hasApiKey: false, localRunning: false, model: "", error: "" };
     var agents = loadMobileAgents();
     var sessions = loadMobileSessions();
     var activeAgentId = sessions[0] && sessions[0].agentId || window.HermesMobileAgents.DEFAULT_AGENT_ID;
@@ -1304,35 +1314,37 @@
     function refreshHeader() {
       var title = document.querySelector("#hermes-mobile-title strong");
       if (title) title.textContent = activeAgent().name || "Hermes";
-      if (modelStatus.checked && !modelStatus.hasApiKey) {
+      if (modelStatus.checked && !isModelReady(modelStatus)) {
         subtitle.textContent = "يلزم إعداد النموذج";
         return;
       }
-      var modelLabel = modelStatus.model || config.model || "";
+      var modelLabel = modelStatus.model || "";
       subtitle.textContent = modelLabel || "خدمة Hermes المحلية جاهزة";
     }
 
     function refreshModelStatus() {
       return requestDashboardJson("GET", "/api/model/info", null, false)
         .then(function (info) {
-          if (!info) return;
-          modelStatus = {
-            checked: true,
-            hasApiKey: Boolean(info.has_api_key || info.hasapikey),
-            model: info.model || config.model || ""
-          };
-          if (info.model || info.base_url) {
-            config = {
-              apiKey: "",
-              baseUrl: info.base_url || config.baseUrl || DEFAULT_CHAT_ENDPOINT,
-              model: info.model || config.model || DEFAULT_CHAT_MODEL
-            };
-            saveMobileChatConfig(config);
+          if (!info || typeof info !== "object") {
+            throw new Error("لم تُرجع واجهة Hermes معلومات إعداد النموذج.");
           }
+          var localInfo = callHermesAndroidJson("getLocalModelStatus");
+          var localRunning = Boolean(localInfo && localInfo.ok && localInfo.running && localInfo.runtime_state === "running");
+          var hasApiKey = Boolean(info.has_api_key || info.hasapikey);
+          var model = String(info.model || (localRunning && (localInfo.model || localInfo.model_id)) || "").trim();
+          var baseUrl = String(info.base_url || (localRunning && localInfo.endpoint) || "").trim();
+          modelStatus = { checked: true, configured: Boolean((model && hasApiKey) || (localRunning && model)), hasApiKey: hasApiKey, localRunning: localRunning, model: model, error: "" };
+          config = { apiKey: "", baseUrl: baseUrl, model: model };
+          saveMobileChatConfig(config);
           refreshHeader();
+          return modelStatus;
         })
         .catch(function (error) {
-          logMobileEvent("model-status-refresh-failed", { error: String(error && error.message || error) });
+          modelStatus = { checked: true, configured: false, hasApiKey: false, localRunning: false, model: "", error: String(error && error.message || error) };
+          config = { apiKey: "", baseUrl: "", model: "" };
+          refreshHeader();
+          logMobileEvent("model-status-refresh-failed", { error: modelStatus.error });
+          return modelStatus;
         });
     }
 
@@ -2208,6 +2220,14 @@
         renderView();
         return;
       }
+      var currentModelStatus = await refreshModelStatus();
+      if (!isModelReady(currentModelStatus)) {
+        parallelError = "لا يوجد نموذج مُعدّ في Hermes. اختر مزودًا من إعدادات النماذج والاتصالات، أو شغّل نموذجًا محليًا منزّلًا من صفحة النماذج المحلية.";
+        currentView = "models";
+        renderView();
+        setTemporarySubtitle(parallelError);
+        return;
+      }
       if (!(await ensureExternalProviderConsent())) return;
       parallelError = "";
       parallelJobs = selected.map(function (item) {
@@ -2585,7 +2605,7 @@
       await refreshModelStatus();
       var endpoint;
       try {
-        endpoint = new URL(String(config.baseUrl || DEFAULT_CHAT_ENDPOINT).trim());
+        endpoint = new URL(String(config.baseUrl || "").trim());
       } catch (error) {
         setTemporarySubtitle("تعذّر التحقق من عنوان مزوّد النموذج. راجع الإعدادات قبل الإرسال.");
         return false;
@@ -2621,6 +2641,13 @@
     async function submitMessage() {
       var text = (input.value || "").trim();
       if (!text && !selectedFiles.length) {
+        return;
+      }
+      var currentModelStatus = await refreshModelStatus();
+      if (!isModelReady(currentModelStatus)) {
+        currentView = "models";
+        renderView();
+        setTemporarySubtitle("لا يوجد نموذج مُعدّ في Hermes. اختر إعداد مزود وأكمل بياناته، أو انتقل إلى النماذج المحلية وشغّل نموذجًا منزّلًا يدويًا.");
         return;
       }
       if (!(await ensureExternalProviderConsent())) {
@@ -3364,7 +3391,7 @@
           "  <label>اسم النموذج<input id=\"hermes-mobile-model-name\" type=\"text\" autocomplete=\"off\" value=\"" + escapeHtml(config.model || "") + "\"></label>",
           "  <label>مفتاح API<input id=\"hermes-mobile-model-key\" type=\"password\" autocomplete=\"off\" placeholder=\"يُحفظ المفتاح في خدمة Hermes المحلية\"></label>",
           "  <label>إعدادات متقدمة<textarea readonly>إعدادات البث ودرجة الحرارة وطول السياق وتعليمات النظام تُدار من إعدادات Hermes المتقدمة.</textarea></label>",
-          "  <div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"model-test\">فحص الاتصال</button><button class=\"secondary\" type=\"button\" data-action=\"open-models\">الإعدادات المتقدمة</button><button type=\"button\" data-action=\"model-save\">حفظ</button></div>",
+          "  <div class=\"hermes-mobile-form-actions\"><button class=\"secondary\" type=\"button\" data-action=\"model-test\">فحص الاتصال</button><button class=\"secondary\" type=\"button\" data-action=\"view\" data-view=\"local-models\">النماذج المحلية</button><button class=\"secondary\" type=\"button\" data-action=\"open-models\">الإعدادات المتقدمة</button><button type=\"button\" data-action=\"model-save\">حفظ</button></div>",
           "</div></div></div>"
         ].join("");
       } else if (currentView === "settings") {
@@ -4085,7 +4112,7 @@
             apiKeyInput.value = "";
           }
           saveMobileChatConfig(config);
-          modelStatus = { checked: false, hasApiKey: false, model: config.model || "" };
+          modelStatus = { checked: false, configured: false, hasApiKey: false, localRunning: false, model: "", error: "" };
           await refreshModelStatus();
           appendAssistant("حُفظت إعدادات النموذج. أُرسل المفتاح إلى خدمة Hermes المحلية، ولا تحفظ الواجهة نسخة صريحة منه. ستستخدم المحادثات الجديدة هذا الإعداد.");
         } catch (error) {
@@ -4099,7 +4126,7 @@
         var diagnoseResult = runEmbeddedAgentCommand("diagnose");
         await refreshModelStatus();
         var statusText = formatEmbeddedStatus(diagnoseResult.status || diagnoseResult);
-        statusText += "\nإعداد النموذج: " + (modelStatus.hasApiKey ? "مكتمل" : "غير مكتمل");
+        statusText += "\nإعداد النموذج: " + (isModelReady(modelStatus) ? "مكتمل" : "غير مكتمل");
         if (modelStatus.model) {
           statusText += "\nالنموذج الحالي: " + modelStatus.model;
         }
@@ -4239,8 +4266,9 @@
         title: "جارٍ تشغيل Hermes"
       });
       var startResult = startEmbeddedAgent();
-      if (!startResult || !startResult.running) {
-        updateAndroidBootOverlay("تعذّر بدء خدمة Hermes المحلية. تحقّق من حالة الخلفية وأعد المحاولة قبل المتابعة.", false, true, {
+      if (!isEmbeddedServiceReady(startResult)) {
+        var bootReason = sanitizeBootDiagnostic(startResult && startResult.error || "لم تؤكد واجهة Hermes جاهزيتها بعد.");
+        updateAndroidBootOverlay("لم تصبح واجهة Hermes جاهزة. " + bootReason + " أعد المحاولة قبل المتابعة.", false, true, {
           actions: true,
           hideProgress: true,
           logText: formatEmbeddedStatus(startResult),
@@ -4248,8 +4276,8 @@
           primaryText: "إعادة محاولة التشغيل",
           statusItems: startResult ? [
             { label: "الخلفية", value: startResult.running ? "قيد التشغيل" : "متوقفة" },
-            { label: "المنفذ", value: startResult.port || "9129" },
-            { label: "الوضع", value: "الهاتف" }
+            { label: "واجهة Hermes", value: isEmbeddedServiceReady(startResult) ? "جاهزة" : "غير جاهزة" },
+            { label: "المنفذ", value: startResult.port || "9129" }
           ] : null,
           title: "فشل بدء الخدمة"
         });
@@ -4257,12 +4285,12 @@
         return;
       }
       rememberEmbeddedDashboard(startResult);
-      updateAndroidBootOverlay("بدأت خدمة Hermes المحلية؛ جارٍ فتح لوحة التحكم...", false, false, {
+      updateAndroidBootOverlay("واجهة Hermes المحلية جاهزة؛ جارٍ فتح التطبيق. إذا لم يكن نموذج مضبوط، يمكنك إعداده من زر النموذج أو تشغيل نموذج محلي يدويًا.", false, false, {
         hideProgress: false,
         statusItems: [
           { label: "الخلفية", value: "قيد التشغيل" },
-          { label: "المنفذ", value: startResult.port || "9129" },
-          { label: "الإصدار", value: startResult.api_status && startResult.api_status.version || "Hermes" }
+          { label: "واجهة Hermes", value: "جاهزة" },
+          { label: "الإصدار", value: startResult.api_status.version }
         ],
         title: "Hermes جاهز"
       });
@@ -4271,13 +4299,15 @@
         showEmbeddedLiteMode("Hermes جاهز");
       }, 250);
     } catch (error) {
-      logMobileEvent("mobile-shell-start-failed", { error: String(error && error.message || error) });
-      updateAndroidBootOverlay("جارٍ تجهيز واجهة Hermes؛ أعد المحاولة بعد قليل.", false, true, {
+      var shellError = sanitizeBootDiagnostic(String(error && error.message || error));
+      logMobileEvent("mobile-shell-start-failed", { error: shellError });
+      updateAndroidBootOverlay("تعذّر تجهيز واجهة Hermes. السبب: " + (shellError || "خطأ غير معروف"), false, true, {
         actions: true,
         hideProgress: true,
-        primaryAction: function () { window.location.reload(); },
-        primaryText: "إعادة الفتح",
-        title: "فشل التشغيل"
+        logText: shellError,
+        primaryAction: startAndroidBootGate,
+        primaryText: "إعادة محاولة التشغيل",
+        title: "تعذّر الإقلاع"
       });
     }
   }
@@ -4508,7 +4538,7 @@
         "#hermes-mobile-community-entry:active{background:rgba(148,163,184,.18);}",
         "#hermes-mobile-community-entry .hermes-mobile-community-icon{width:18px;height:18px;display:inline-grid;place-items:center;font-size:16px;line-height:1;}",
         "#hermes-mobile-community-dialog[hidden]{display:none!important;}",
-        "#hermes-mobile-community-dialog{position:fixed;inset:0;z-index:2147483642;display:grid;place-items:center;background:radial-gradient(circle at 20% 12%,rgba(59,130,246,.28),transparent 34%),radial-gradient(circle at 82% 18%,rgba(236,72,153,.22),transparent 30%),rgba(15,23,42,.48);padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backdrop-filter:blur(16px);box-sizing:border-box;}",
+        "#hermes-mobile-community-dialog{position:fixed;inset:0;z-index:2147483642;display:grid;place-items:center;background:radial-gradient(circle at 20% 12%,rgba(59,130,246,.28),transparent 34%),radial-gradient(circle at 82% 18%,rgba(236,72,153,.22),transparent 30%),rgba(15,23,42,.48);padding:max(10px,var(--hermes-safe-top,env(safe-area-inset-top,0px))) max(10px,var(--hermes-safe-right,env(safe-area-inset-right,0px))) max(10px,var(--hermes-safe-bottom,env(safe-area-inset-bottom,0px))) max(10px,var(--hermes-safe-left,env(safe-area-inset-left,0px)));font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backdrop-filter:blur(16px);box-sizing:border-box;}",
         "#hermes-mobile-community-panel{box-sizing:border-box;width:min(calc(100vw - 20px),360px);max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);overflow:auto;border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(239,246,255,.92));color:#172033;box-shadow:0 26px 70px rgba(15,23,42,.32);padding:14px;border:1px solid rgba(255,255,255,.82);}",
         "#hermes-mobile-community-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}",
         "#hermes-mobile-community-title{font-size:20px;font-weight:820;background:linear-gradient(100deg,#2563eb,#9333ea 48%,#f97316);-webkit-background-clip:text;background-clip:text;color:transparent;}",

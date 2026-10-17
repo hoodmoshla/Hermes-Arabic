@@ -7,24 +7,32 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import org.json.JSONObject;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** User-visible, restartable host for Hermes Agent and the optional local model. */
 public final class HermesForegroundService extends Service {
     private static final String TAG = "HermesRuntimeService";
     private static final String CHANNEL_ID = "hermes_background_agent_v1";
     private static final int NOTIFICATION_ID = 9129;
-    private static final String PREFS = "hermes-background-runtime-v1";
-    private static final String PREF_ENABLED = "enabled";
+    private static final long WATCHDOG_INTERVAL_MS = 4_000L;
+    private static final long BACKGROUND_GRACE_MS = 8_000L;
+    private static final int REQUIRED_IDLE_SAMPLES = 2;
+    private static final Object LIFECYCLE_LOCK = new Object();
+    private static volatile boolean activityInForeground;
+    private static volatile long backgroundSinceElapsed;
+    private static volatile long lifecycleGeneration;
 
     public static final String ACTION_START = "com.hoodmoshla.hermesarabic.action.START_RUNTIME";
     public static final String ACTION_STOP = "com.hoodmoshla.hermesarabic.action.STOP_RUNTIME";
@@ -36,13 +44,25 @@ public final class HermesForegroundService extends Service {
         thread.setDaemon(true);
         return thread;
     });
+    private final Handler watchdogHandler = new Handler(Looper.getMainLooper());
+    private final AtomicBoolean watchdogCheckRunning = new AtomicBoolean(false);
+    private final Runnable watchdog = this::checkIdleRuntime;
+    private int consecutiveIdleSamples;
 
     public static void start(Context context) {
         Context app = context.getApplicationContext();
-        preferences(app).edit().putBoolean(PREF_ENABLED, true).apply();
         Intent intent = new Intent(app, HermesForegroundService.class).setAction(ACTION_START);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) app.startForegroundService(intent);
         else app.startService(intent);
+    }
+
+    /** Updated by MainActivity lifecycle callbacks; false means app task is backgrounded. */
+    public static void setActivityInForeground(boolean foreground) {
+        synchronized (LIFECYCLE_LOCK) {
+            if (activityInForeground != foreground) lifecycleGeneration++;
+            activityInForeground = foreground;
+            backgroundSinceElapsed = foreground ? 0L : SystemClock.elapsedRealtime();
+        }
     }
 
     public static void onLocalModelReady(Context context) {
@@ -63,42 +83,36 @@ public final class HermesForegroundService extends Service {
         }
     }
 
-    static boolean isEnabledAfterBoot(Context context) {
-        return preferences(context.getApplicationContext()).getBoolean(PREF_ENABLED, false);
-    }
-
-    private static SharedPreferences preferences(Context context) {
-        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
+        synchronized (LIFECYCLE_LOCK) {
+            if (!activityInForeground && backgroundSinceElapsed == 0L) backgroundSinceElapsed = SystemClock.elapsedRealtime();
+        }
         createNotificationChannel();
         startAsForeground(buildNotification("تهيئة Hermes واستعادة المهام المحلية"));
+        watchdogHandler.postDelayed(watchdog, WATCHDOG_INTERVAL_MS);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null && !isEnabledAfterBoot(this)) {
+        if (intent == null) {
             stopSelf(startId);
             return START_NOT_STICKY;
         }
         String action = intent == null ? ACTION_START : intent.getAction();
         if (ACTION_STOP.equals(action)) {
-            preferences(this).edit().putBoolean(PREF_ENABLED, false).apply();
             WORKER.execute(this::stopRuntime);
         } else if (ACTION_MODEL_READY.equals(action)) {
             WORKER.execute(this::configureLocalModelProvider);
         } else if (ACTION_MODEL_STOPPED.equals(action)) {
             WORKER.execute(this::restoreModelProvider);
         } else {
-            preferences(this).edit().putBoolean(PREF_ENABLED, true).apply();
             startAsForeground(buildNotification("Hermes يعمل في الخلفية؛ المهام محفوظة محليًا"));
             WORKER.execute(this::startRuntime);
             LocalModelManager.resumeSelected(this);
         }
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     private void startRuntime() {
@@ -155,6 +169,118 @@ public final class HermesForegroundService extends Service {
         }
     }
 
+    /** Native watchdog: it never depends on WebView/JavaScript being alive. */
+    private void checkIdleRuntime() {
+        watchdogHandler.postDelayed(watchdog, WATCHDOG_INTERVAL_MS);
+        if (!watchdogCheckRunning.compareAndSet(false, true)) return;
+        WORKER.execute(() -> {
+            try {
+                evaluateIdleRuntime();
+            } catch (Exception error) {
+                consecutiveIdleSamples = 0;
+                updateNotification("تعذّر التحقق من المهام؛ أبقينا Hermes يعمل بأمان");
+                Log.w(TAG, "Idle watchdog failed closed", error);
+            } finally {
+                watchdogCheckRunning.set(false);
+            }
+        });
+    }
+
+    private void evaluateIdleRuntime() {
+        final long observedGeneration;
+        final long backgroundSince;
+        synchronized (LIFECYCLE_LOCK) {
+            observedGeneration = lifecycleGeneration;
+            if (activityInForeground) {
+                consecutiveIdleSamples = 0;
+                return;
+            }
+            if (backgroundSinceElapsed == 0L) backgroundSinceElapsed = SystemClock.elapsedRealtime();
+            backgroundSince = backgroundSinceElapsed;
+        }
+        if (SystemClock.elapsedRealtime() - backgroundSince < BACKGROUND_GRACE_MS || LocalModelManager.hasOngoingSetupWork()) {
+            consecutiveIdleSamples = 0;
+            return;
+        }
+
+        JSONObject status;
+        try {
+            status = new JSONObject(EmbeddedHermesRuntime.call(this, "status"));
+        } catch (Exception error) {
+            consecutiveIdleSamples = 0;
+            updateNotification("حالة المهام غير معروفة؛ لن نوقف Hermes حتى يمكن التحقق منها");
+            return;
+        }
+        if (!status.optBoolean("task_state_available", false)
+                || !status.has("active_tasks") || status.isNull("active_tasks")) {
+            consecutiveIdleSamples = 0;
+            String detail = status.optString("task_state_error", status.optString("error", "حالة المهام غير متاحة"));
+            updateNotification("تعذّر التحقق من المهام؛ Hermes مستمر بأمان: " + truncate(detail, 62));
+            return;
+        }
+        final int activeTasks;
+        try {
+            activeTasks = status.getInt("active_tasks");
+        } catch (Exception error) {
+            consecutiveIdleSamples = 0;
+            updateNotification("عدد المهام غير صالح؛ لن نوقف Hermes حتى يمكن التحقق منه");
+            return;
+        }
+        if (activeTasks < 0) {
+            consecutiveIdleSamples = 0;
+            updateNotification("عدد المهام غير صالح؛ لن نوقف Hermes حتى يمكن التحقق منه");
+            return;
+        }
+        if (activeTasks > 0) {
+            consecutiveIdleSamples = 0;
+            updateNotification("تستمر مهام Hermes في الخلفية (" + activeTasks + ")");
+            return;
+        }
+        if (++consecutiveIdleSamples < REQUIRED_IDLE_SAMPLES) return;
+        if (LocalModelManager.hasOngoingSetupWork() || !stillSameBackground(observedGeneration)) {
+            consecutiveIdleSamples = 0;
+            return;
+        }
+        // Release native model resources but keep the persisted user selection for the next app launch.
+        LocalModelManager.pauseForIdleService();
+        if (LocalModelManager.hasOngoingSetupWork() || !stillSameBackground(observedGeneration)) {
+            consecutiveIdleSamples = 0;
+            return;
+        }
+        EmbeddedHermesRuntime.call(this, "restore_local_model", getFilesDir().getAbsolutePath());
+        String stopped = EmbeddedHermesRuntime.call(this, "stop", getFilesDir().getAbsolutePath(), 9129);
+        try {
+            JSONObject stopStatus = new JSONObject(stopped);
+            if (!stopStatus.optBoolean("ok", false)) {
+                consecutiveIdleSamples = 0;
+                updateNotification("تعذّر إيقاف Hermes تلقائيًا؛ الخدمة باقية: " + truncate(stopStatus.optString("error", "خطأ غير معروف"), 64));
+                return;
+            }
+        } catch (Exception error) {
+            consecutiveIdleSamples = 0;
+            updateNotification("لم نتمكن من تأكيد الإيقاف؛ أبقينا الخدمة نشطة");
+            return;
+        }
+        if (!stillSameBackground(observedGeneration)) {
+            // The user returned during shutdown: restore the runtime rather than leaving the app offline.
+            consecutiveIdleSamples = 0;
+            startRuntime();
+            LocalModelManager.resumeSelected(this);
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) stopForeground(STOP_FOREGROUND_REMOVE);
+        else stopForeground(true);
+        stopSelf();
+    }
+
+    private boolean stillSameBackground(long generation) {
+        synchronized (LIFECYCLE_LOCK) {
+            return !activityInForeground && lifecycleGeneration == generation
+                    && backgroundSinceElapsed != 0L
+                    && SystemClock.elapsedRealtime() - backgroundSinceElapsed >= BACKGROUND_GRACE_MS;
+        }
+    }
+
     private void startAsForeground(Notification notification) {
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
@@ -206,6 +332,7 @@ public final class HermesForegroundService extends Service {
 
     @Override
     public void onDestroy() {
+        watchdogHandler.removeCallbacks(watchdog);
         super.onDestroy();
     }
 

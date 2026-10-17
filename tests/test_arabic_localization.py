@@ -141,13 +141,13 @@ class ArabicLocalizationTests(unittest.TestCase):
         self.assertIn('lang="ar"', web_index)
         self.assertIn('dir="rtl"', web_index)
         self.assertIn('id="hermes-arabic-mobile-css"', web_index)
-        self.assertIn('href="./hermes-arabic-mobile.css?v=0.2.4"', web_index)
+        self.assertIn('href="./hermes-arabic-mobile.css?v=0.2.5"', web_index)
         self.assertIn('<html lang="ar" dir="rtl">', dashboard_index)
         self.assertIn('direction: rtl', css)
         self.assertIn("#hermes-mobile-shell.dark", css)
         self.assertIn("@media", css)
         self.assertIn("link[rel='stylesheet'][href*='hermes-arabic-mobile.css']", locale_script)
-        self.assertIn('stylesheet.href = "/hermes-arabic-mobile.css?v=0.2.4"', locale_script)
+        self.assertIn('stylesheet.href = "/hermes-arabic-mobile.css?v=0.2.5"', locale_script)
         bridge = (ROOT / "www/hermes-mobile-bridge.js").read_text(encoding="utf-8")
         boot_log_css = next(line for line in bridge.splitlines() if "#hermes-android-boot-log{" in line)
         self.assertIn("direction:rtl", boot_log_css)
@@ -208,7 +208,7 @@ class ArabicLocalizationTests(unittest.TestCase):
             "الاقتران باستخدام رمز",
             "العودة إلى الإعدادات",
             "إعدادات متقدمة",
-            "تعذّر بدء خدمة Hermes المحلية",
+            "تعذّر الاتصال بجلسة Hermes المحلية. حاول لاحقًا أو افتح وضع الطرفية.",
             "التبديل إلى الوضع الفاتح",
         ):
             self.assertIn(arabic_label, bridge)
