@@ -1,0 +1,8 @@
+{
+  "last_synced_tag": null,
+  "last_synced_commit": null,
+  "last_android_version_code": 7,
+  "last_android_version_name": "0.2.5",
+  "last_published_release": "v0.2.5",
+  "notes": "No upstream engine replacement has been published. A detected official tag must not reuse or overwrite this Android release."
+}

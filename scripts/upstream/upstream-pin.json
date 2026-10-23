@@ -1,0 +1,14 @@
+{
+  "upstream_repo": "NousResearch/hermes-agent",
+  "latest_stable_tag": "v0.22.4",
+  "latest_stable_tag_object": "64dbae64747ab640a3fece06f359307c30d129da",
+  "latest_stable_commit": "4d04303818b61bf3aa09278af48356315515965b",
+  "latest_stable_published_at": "2026-10-21T18:49:24Z",
+  "embedded_engine_marker": "0.22.4",
+  "embedded_engine_origin": "Copied from NousResearch/hermes-agent v0.22.4 with Android overlays preserved",
+  "engine_replaced": true,
+  "replacement_status": "embedded_release_candidate",
+  "hold_reason": "Functional tests passed locally. Publication still requires a signed ARM64 APK whose certificate matches the previous public release. No physical Android device is available in this environment.",
+  "compatible_now": true,
+  "excluded_from_apk": ["apps", "ui-tui", "web", "node_modules", "tests", "scripts"]
+}

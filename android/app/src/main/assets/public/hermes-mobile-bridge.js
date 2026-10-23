@@ -112,6 +112,8 @@
     privacy: ["الخصوصية والبيانات", "راجع أين تُحفظ الجلسات وكيف تُرسل بيانات الرسائل والمرفقات."],
     github: ["GitHub", "ربط مستودعات GitHub وقراءة الملفات ومراجعة التغييرات ونتائج الاختبار."]
   };
+  FEATURE_INFO["about-update"] = ["حول التطبيق ← التحقق من التحديثات", "يعرض آخر إصدار Android منشور من hoodmoshla/Hermes-Arabic، ولا يثبّت وسوم Hermes Agent الأصلية."];
+  ALL_SETTINGS_TOOLS.push(["حول التطبيق", "التحقق من تحديث APK المتوافق والبصمة قبل التثبيت", "about-update", "حول التطبيق"]);
   var SLASH_COMMANDS = {
     "/new": "new-session",
     "/web": "tool-web",
@@ -4991,7 +4993,8 @@
     updates: {
       apply: unsupportedOk,
       check: function () {
-        return Promise.resolve({ supported: false, update_available: false });
+        var status = callHermesAndroidJson("checkAppUpdate", []) || {};
+        return Promise.resolve({ supported: true, update_available: Boolean(status.notify), status: status });
       },
       getBranch: function () {
         return Promise.resolve({ branch: "main" });
@@ -5022,6 +5025,45 @@
   window.__hermesAndroidShowKeyboard = focusComposerAndShowKeyboard;
   window.__hermesAndroidOpenCommunity = openCommunityDialog;
   window.__hermesAndroidApplyTheme = applyMobileTheme;
+  window.__hermesAndroidCheckUpdates = function () {
+    return callHermesAndroidJson("checkAppUpdate", []);
+  };
+  window.__hermesRenderAboutUpdate = function () {
+    var status = callHermesAndroidJson("getCachedAppUpdate", []) || { status: "unknown", error: "bridge_unavailable" };
+    var root = document.getElementById("hermes-mobile-about-update-status");
+    var text = status.status === "update_available"
+      ? "يتوفر تحديث متوافق " + (status.latest_tag || "") + ". versionCode: " + (status.latest_version_code || "غير معروف") + ". الحجم: " + (status.size || "غير متوفر") + " بايت."
+      : status.status === "up_to_date"
+        ? "لا يوجد تحديث أحدث من النسخة المثبتة."
+        : status.status === "network_error"
+          ? "لا توجد شبكة أو تعذر الوصول إلى GitHub. تبقى آخر حالة معروفة دون اعتبارها فشل تثبيت."
+          : "حالة التحقق: " + (status.status || "unknown") + (status.error ? " (" + status.error + ")" : "");
+    if (root) root.textContent = text;
+    var panel = document.getElementById("hermes-mobile-about-update");
+    if (!panel) {
+      panel = document.createElement("section");
+      panel.id = "hermes-mobile-about-update";
+      panel.setAttribute("dir", "rtl");
+      panel.innerHTML = "<h2>حول التطبيق ← التحقق من التحديثات</h2><p id=\"hermes-mobile-about-update-status\"></p><button type=\"button\" data-action=\"check-updates\">التحقق من التحديثات</button><button type=\"button\" data-action=\"download-update\">تنزيل التحديث</button>";
+      document.body.appendChild(panel);
+      panel.querySelector("[data-action='check-updates']").addEventListener("click", function () {
+        callHermesAndroidJson("checkAppUpdate", []);
+        window.__hermesRenderAboutUpdate();
+      });
+      panel.querySelector("[data-action='download-update']").addEventListener("click", function () {
+        var current = window.__hermesRenderAboutUpdate() || {};
+        if (!current.notify || !current.download_url || !current.expected_sha256) return;
+        var downloaded = callHermesAndroidJson("downloadVerifiedAppUpdate", [current.download_url, current.expected_sha256]);
+        if (downloaded && downloaded.ok && downloaded.path) {
+          callHermesAndroidBoolean("installVerifiedAppUpdate", [downloaded.path]);
+        } else {
+          var message = document.getElementById("hermes-mobile-about-update-status");
+          if (message) message.textContent = "تعذر تنزيل التحديث أو فشل التحقق من SHA-256. لم يُفتح مثبّت Android.";
+        }
+      });
+    }
+    return status;
+  };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
       startAndroidBootGate();

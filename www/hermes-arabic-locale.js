@@ -107,7 +107,7 @@
       stylesheet = document.createElement("link");
       stylesheet.id = "hermes-arabic-mobile-css";
       stylesheet.rel = "stylesheet";
-      stylesheet.href = "/hermes-arabic-mobile.css?v=0.2.5";
+      stylesheet.href = "/hermes-arabic-mobile.css?v=0.2.6";
       (document.head || document.documentElement).appendChild(stylesheet);
     } else if (!stylesheet.id) {
       stylesheet.id = "hermes-arabic-mobile-css";

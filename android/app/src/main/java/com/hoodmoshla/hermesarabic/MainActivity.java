@@ -1018,6 +1018,29 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
+        public String checkAppUpdate() {
+            return AppUpdateManager.check(MainActivity.this).toString();
+        }
+
+        @JavascriptInterface
+        public String getCachedAppUpdate() {
+            return AppUpdateManager.cachedOrCheck(MainActivity.this).toString();
+        }
+
+        @JavascriptInterface
+        public String downloadVerifiedAppUpdate(String url, String expectedSha256) {
+            return AppUpdateManager.downloadVerified(MainActivity.this, url, expectedSha256).toString();
+        }
+
+        @JavascriptInterface
+        public boolean installVerifiedAppUpdate(String path) {
+            if (path == null || path.trim().isEmpty()) return false;
+            File apk = new File(path);
+            if (!apk.isFile() || !apk.getAbsolutePath().startsWith(getCacheDir().getAbsolutePath())) return false;
+            return AppUpdateManager.openInstaller(MainActivity.this, apk);
+        }
+
+        @JavascriptInterface
         public String getDashboardSessionToken() {
             HttpURLConnection connection = null;
             try {

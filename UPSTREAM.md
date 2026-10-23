@@ -11,6 +11,9 @@
 ## محرك Hermes Agent
 
 - المصدر المضمّن في `android/app/src/main/python/` من [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent).
+- النسخة المضمّنة في Hermes Arabic `v0.2.6` منسوخة من [`v0.22.4`](https://github.com/NousResearch/hermes-agent/releases/tag/v0.22.4)، كائن الوسم `64dbae64747ab640a3fece06f359307c30d129da`، والـ commit `4d04303818b61bf3aa09278af48356315515965b`.
+- المؤشر النصي `hermes_cli.__version__` يبقى `0.0.0` إلى أن يوجد ختم تثبيت رسمي؛ الإثبات هو سجل `scripts/upstream/upstream-pin.json` وليس هذا الرقم وحده.
+- أُزيلت أشجار سطح المكتب غير اللازمة للإقلاع (`apps` و`ui-tui` و`web` و`node_modules` و`docker` و`evals`)، وأُبقيت حزم تشغيل الوكيل بما فيها `plugins/web`.
 - ملف الترخيص المرفق مع الشيفرة: `android/app/src/main/python/LICENSE` (MIT، copyright Nous Research).
 - تُحفظ ملفات المصدر والحقوق التابعة كما وردت في النسخة المنقولة؛ لا تُحذف ترويسات الملفات عند التعديل.
 - الدمج الحالي يضم Python/Chaquopy وملفات Dashboard وNode/TUI ومكونات ARM64 الواردة في المصدر، وليس إعادة تنفيذ مستقلة لمحرك Nous.

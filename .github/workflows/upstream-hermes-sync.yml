@@ -1,0 +1,39 @@
+name: Hermes upstream sync
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  detect-and-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Detect official Hermes Agent release without publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/upstream/sync_hermes_agent.py --report scripts/upstream/sync-report.json
+      - name: Reject publication until Android adaptation and gates pass
+        run: |
+          python3 - << 'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("scripts/upstream/sync-report.json").read_text(encoding="utf-8"))
+          if report.get("publish_android_release"):
+              raise SystemExit("Refusing to publish: this workflow only stages a held sync until the embedded engine has an Android-compatible replacement and all gates pass.")
+          print("Held official release:", report.get("release", {}).get("tag"), report.get("release", {}).get("commit"))
+          print("Reasons:", ", ".join(report.get("hold_reasons") or []))
+          PY
+      - name: Upload sync report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hermes-upstream-sync-report
+          path: scripts/upstream/sync-report.json

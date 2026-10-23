@@ -165,15 +165,16 @@ def initialize(files_dir: str, port: int = 9129) -> str:
 def _run_server(host: str, port: int) -> None:
     global _last_error
     try:
+        from hermes_arabic_compat import adapt_start_server_kwargs
         from hermes_cli.web_server import start_server
 
-        start_server(
+        start_server(**adapt_start_server_kwargs(
             host=host,
             port=port,
             open_browser=False,
             allow_public=False,
             initial_profile="",
-        )
+        ))
     except BaseException as exc:
         _last_error = "".join(traceback.format_exception_only(type(exc), exc)).strip()
     finally:
@@ -381,8 +382,8 @@ def stop(files_dir: str, port: int = 9129) -> str:
     _server_port = int(port or _server_port)
     _prepare_environment(files_dir)
     try:
-        from hermes_cli.web_server import request_server_shutdown
-        requested = request_server_shutdown()
+        from hermes_arabic_compat import request_embedded_shutdown
+        requested = bool(request_embedded_shutdown())
     except Exception:
         requested = False
     deadline = time.time() + 20

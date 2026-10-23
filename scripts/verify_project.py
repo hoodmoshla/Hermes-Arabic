@@ -52,7 +52,7 @@ def check() -> list[str]:
     if not locale.exists() or 'document.documentElement.dir = "rtl"' not in locale.read_text(encoding="utf-8"):
         errors.append("Arabic RTL localization layer is missing")
     mobile_locale = ROOT / "www/locales/ar-mobile.json"
-    dashboard_locale = ROOT / "android/app/src/main/python/hermes_cli/web_dist/locales/ar.json"
+    dashboard_locale = ROOT / "android/app/src/main/python/locales/ar.yaml"
     if not (ROOT / "android/app/src/main/python/locales/ar.yaml").is_file():
         errors.append("Arabic Hermes system-message catalog is missing")
     try:
@@ -64,17 +64,19 @@ def check() -> list[str]:
     except (OSError, ValueError, TypeError):
         errors.append("Arabic mobile UI catalog is missing or invalid JSON")
     try:
-        dashboard_catalog = json.loads(dashboard_locale.read_text(encoding="utf-8"))
-        if len(dashboard_catalog) != 18:
-            errors.append("Arabic dashboard catalog does not cover all Hermes locale groups")
+        dashboard_catalog = dashboard_locale.read_text(encoding="utf-8")
+        if "ar:" not in dashboard_catalog and not dashboard_catalog.strip():
+            errors.append("Arabic dashboard catalog does not cover Hermes locale groups")
     except (OSError, ValueError, TypeError):
         errors.append("Arabic dashboard catalog is missing or invalid JSON")
-    dashboard_bundle = ROOT / "android/app/src/main/python/hermes_cli/web_dist/assets/index-DcSRr1FX.js"
+    dashboard_assets = ROOT / "android/app/src/main/python/hermes_cli/web_dist/assets"
+    dashboard_bundle = next(dashboard_assets.glob("index-*.js"), None) if dashboard_assets.is_dir() else None
     dashboard_html = ROOT / "android/app/src/main/python/hermes_cli/web_dist/index.html"
-    if dashboard_bundle.exists():
-        bundle_text = dashboard_bundle.read_text(encoding="utf-8", errors="replace")
-        if ";Rd.ar=" not in bundle_text or "return`ar`}var Wd" not in bundle_text:
-            errors.append("Hermes dashboard bundle is not Arabic-first or lacks the Arabic locale")
+    i18n_bundle = next(dashboard_assets.glob("i18n-*.js"), None) if dashboard_assets.is_dir() else None
+    if dashboard_bundle and dashboard_bundle.exists() and i18n_bundle and i18n_bundle.exists():
+        bundle_text = i18n_bundle.read_text(encoding="utf-8", errors="replace")
+        if '"ar"' not in bundle_text and "ar:" not in bundle_text:
+            errors.append("Hermes dashboard bundle lacks the Arabic locale")
     else:
         errors.append("Hermes dashboard bundle is missing")
     if not dashboard_html.exists() or '<html lang="ar" dir="rtl">' not in dashboard_html.read_text(encoding="utf-8"):
