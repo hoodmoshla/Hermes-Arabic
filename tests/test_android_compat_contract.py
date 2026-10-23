@@ -54,8 +54,8 @@ class AndroidCompatContractTests(unittest.TestCase):
         self.assertIn("hermes-home", backend)
         self.assertNotIn("shutil.rmtree", backend)
         gradle = (ROOT / "android/app/build.gradle").read_text(encoding="utf-8")
-        self.assertIn("versionCode 8", gradle)
-        self.assertIn('versionName "0.2.6"', gradle)
+        self.assertIn("versionCode 9", gradle)
+        self.assertIn('versionName "0.2.7"', gradle)
 
     def test_wholesale_engine_replacement_remains_blocked(self) -> None:
         root = ROOT / "android/app/src/main/python"

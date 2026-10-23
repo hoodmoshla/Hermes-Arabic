@@ -2,6 +2,15 @@
 
 import sys
 
+try:
+    from hermes_android_pydantic import install as _install_android_pydantic
+
+    _install_android_pydantic()
+except Exception:
+    # Host installs with Pydantic 2 do not need this bridge. A missing bridge
+    # still fails later as the original pydantic ImportError.
+    pass
+
 __release_date__ = "2026.9.24"
 # Declared for type checkers and the old-updater surface audit; served lazily by __getattr__.
 __version__: str

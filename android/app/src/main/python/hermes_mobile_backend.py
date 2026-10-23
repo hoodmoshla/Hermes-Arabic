@@ -18,6 +18,10 @@ import traceback
 from typing import Any
 from urllib.request import urlopen
 
+import hermes_android_pydantic
+
+hermes_android_pydantic.install()
+
 _lock = threading.RLock()
 _server_thread: threading.Thread | None = None
 _server_port = 9129

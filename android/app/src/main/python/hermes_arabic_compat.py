@@ -10,6 +10,13 @@ from __future__ import annotations
 import os
 from typing import Any
 
+try:
+    import hermes_android_pydantic
+except ModuleNotFoundError:
+    hermes_android_pydantic = None
+else:
+    hermes_android_pydantic.install()
+
 OFFICIAL_UPSTREAM = {
     "repo": "NousResearch/hermes-agent",
     "tag": "v0.22.4",
